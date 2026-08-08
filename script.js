@@ -113,18 +113,7 @@ function showCustomerLogin() {
 
     showPage("customerLoginPage");
 
-    setTimeout(() => {
-
-        const email =
-            document.getElementById("customerEmail");
-
-        if (email) {
-            email.focus();
-        }
-
-    }, 300);
 }
-
 
 function showAdminLogin() {
 
@@ -147,63 +136,20 @@ function showAdminLogin() {
    CUSTOMER LOGIN
 ========================================== */
 
-function customerLogin() {
+/* ==========================================
+   REAL GOOGLE CUSTOMER LOGIN
+========================================== */
 
-    const email =
-        document
-            .getElementById("customerEmail")
-            .value
-            .trim()
-            .toLowerCase();
+const BACKEND_URL =
+    "https://bachroom-backend.onrender.com";
 
 
-    if (!email) {
+function googleLogin() {
 
-        showToast(
-            "Please enter your Gmail address."
-        );
+    window.location.href =
+        `${BACKEND_URL}/auth/google`;
 
-        return;
-    }
-
-
-    if (
-        !email.endsWith("@gmail.com") ||
-        !email.includes("@")
-    ) {
-
-        showToast(
-            "Please enter a valid Gmail address."
-        );
-
-        return;
-    }
-
-
-    currentUser = {
-        email: email,
-        loginDate: new Date().toISOString()
-    };
-
-
-    localStorage.setItem(
-        "bachroom_user",
-        JSON.stringify(currentUser)
-    );
-
-
-    showToast(
-        "Welcome to bachroom.com!"
-    );
-
-
-    setTimeout(() => {
-
-        showCustomerDashboard();
-
-    }, 500);
 }
-
 
 /* ==========================================
    ADMIN LOGIN
