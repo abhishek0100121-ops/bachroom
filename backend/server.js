@@ -4,474 +4,371 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
-const GoogleStrategy =
-    require("passport-google-oauth20").Strategy;
-
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const app = express();
 
+const PORT = process.env.PORT || 3000;
 
-const PORT =
-    process.env.PORT || 3000;
+// ======================================================
+// BASIC SETTINGS
+// ======================================================
 
+app.set("trust proxy", 1);
 
-/* ==========================================
-   RENDER HTTPS / PROXY
-========================================== */
+app.use(express.json());
 
-app.set(
-    "trust proxy",
-    1
-);
+// ======================================================
+// CORS
+// ======================================================
 
-
-/* ==========================================
-   BASIC MIDDLEWARE
-========================================== */
-
-app.use(
-    express.json()
-);
-
+const FRONTEND_URL = (
+    process.env.FRONTEND_URL ||
+    "https://abhishek0100121-ops.github.io"
+).replace(/\/$/, "");
 
 app.use(
     cors({
-
-        origin:
-            process.env.FRONTEND_URL,
-
-        credentials:
-            true
-
+        origin: FRONTEND_URL,
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"]
     })
 );
 
-
-/* ==========================================
-   SESSION
-========================================== */
+// ======================================================
+// SESSION
+// ======================================================
 
 app.use(
-
     session({
+        name: "bachroom.sid",
 
-        secret:
-            process.env.SESSION_SECRET,
+        secret: process.env.SESSION_SECRET,
 
-        resave:
-            false,
+        resave: false,
 
-        saveUninitialized:
-            false,
+        saveUninitialized: false,
+
+        proxy: true,
 
         cookie: {
+            httpOnly: true,
 
-            httpOnly:
-                true,
+            secure: true,
 
-            secure:
-                true,
+            sameSite: "none",
 
-            sameSite:
-                "none",
+            maxAge: 24 * 60 * 60 * 1000,
 
-            maxAge:
-                24 * 60 * 60 * 1000
-
+            // Helps Chrome handle cross-site cookies
+            partitioned: true
         }
-
     })
-
 );
 
+// ======================================================
+// PASSPORT
+// ======================================================
 
-/* ==========================================
-   PASSPORT
-========================================== */
+app.use(passport.initialize());
 
-app.use(
-    passport.initialize()
-);
+app.use(passport.session());
 
-
-app.use(
-    passport.session()
-);
-
-
-/* ==========================================
-   GOOGLE OAUTH
-========================================== */
+// ======================================================
+// GOOGLE OAUTH
+// ======================================================
 
 passport.use(
-
     new GoogleStrategy(
-
         {
+            clientID: process.env.GOOGLE_CLIENT_ID,
 
-            clientID:
-                process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 
-            clientSecret:
-                process.env.GOOGLE_CLIENT_SECRET,
-
-            callbackURL:
-                process.env.GOOGLE_CALLBACK_URL
-
+            callbackURL: process.env.GOOGLE_CALLBACK_URL
         },
 
-
-        function(
-
-            accessToken,
-            refreshToken,
-            profile,
-
-            done
-
-        ) {
+        function (accessToken, refreshToken, profile, done) {
 
             const user = {
+                id: profile.id,
 
-                id:
-                    profile.id,
-
-                name:
-                    profile.displayName,
+                name: profile.displayName,
 
                 email:
-                    profile
-                        .emails?.[0]
-                        ?.value || "",
+                    profile.emails &&
+                    profile.emails[0]
+                        ? profile.emails[0].value
+                        : "",
 
                 photo:
-                    profile
-                        .photos?.[0]
-                        ?.value || ""
-
+                    profile.photos &&
+                    profile.photos[0]
+                        ? profile.photos[0].value
+                        : ""
             };
 
-
-            return done(
-                null,
-                user
-            );
-
+            return done(null, user);
         }
-
     )
-
 );
 
+// ======================================================
+// SERIALIZE USER
+// ======================================================
 
-/* ==========================================
-   SESSION SERIALIZATION
-========================================== */
+passport.serializeUser(function (user, done) {
 
-passport.serializeUser(
+    done(null, user);
 
-    function(
-        user,
-        done
-    ) {
+});
 
-        done(
-            null,
-            user
-        );
+// ======================================================
+// DESERIALIZE USER
+// ======================================================
 
-    }
+passport.deserializeUser(function (user, done) {
 
-);
+    done(null, user);
 
+});
 
-passport.deserializeUser(
+// ======================================================
+// HOME / HEALTH CHECK
+// ======================================================
 
-    function(
-        user,
-        done
-    ) {
+app.get("/", function (req, res) {
 
-        done(
-            null,
-            user
-        );
+    res.json({
+        success: true,
+        message: "Bachroom.com backend is running",
+        creator: "Abhishek Mishra"
+    });
 
-    }
+});
 
-);
-
-
-/* ==========================================
-   HEALTH CHECK
-========================================== */
+// ======================================================
+// GOOGLE LOGIN
+// ======================================================
 
 app.get(
-
-    "/",
-
-    (req, res) => {
-
-        res.json({
-
-            success:
-                true,
-
-            message:
-                "Bachroom.com backend is running",
-
-            creator:
-                "Abhishek Mishra"
-
-        });
-
-    }
-
-);
-
-
-/* ==========================================
-   START GOOGLE LOGIN
-========================================== */
-
-app.get(
-
     "/auth/google",
 
-    passport.authenticate(
-
-        "google",
-
-        {
-
-            scope: [
-
-                "profile",
-
-                "email"
-
-            ]
-
-        }
-
-    )
-
+    passport.authenticate("google", {
+        scope: ["profile", "email"]
+    })
 );
 
-
-/* ==========================================
-   GOOGLE CALLBACK
-========================================== */
+// ======================================================
+// GOOGLE CALLBACK
+// ======================================================
 
 app.get(
-
     "/auth/google/callback",
 
-    passport.authenticate(
+    passport.authenticate("google", {
+        failureRedirect:
+            `${FRONTEND_URL}/?login=failed`
+    }),
 
-        "google",
+    function (req, res) {
 
-        {
+        // Make absolutely sure the session is saved
+        // before redirecting to GitHub Pages.
 
-            failureRedirect:
-                `${process.env.FRONTEND_URL}/?login=failed`
+        req.session.save(function (err) {
 
-        }
+            if (err) {
 
-    ),
-
-
-    function(
-        req,
-        res
-    ) {
-
-        /*
-           IMPORTANT:
-
-           Save the Passport session completely
-           before redirecting to the frontend.
-        */
-
-        req.session.save(
-
-            function(err) {
-
-                if (err) {
-
-                    console.error(
-                        "Google session save failed:",
-                        err
-                    );
-
-                    return res.redirect(
-                        `${process.env.FRONTEND_URL}/?login=failed`
-                    );
-
-                }
-
-
-                res.redirect(
-
-                    `${process.env.FRONTEND_URL}/?login=success`
-
+                console.error(
+                    "SESSION SAVE ERROR:",
+                    err
                 );
 
+                return res.redirect(
+                    `${FRONTEND_URL}/?login=failed`
+                );
             }
 
-        );
+            console.log(
+                "Google login successful:",
+                req.user.email
+            );
 
-    }
-
-);
-
-
-/* ==========================================
-   CURRENT USER
-========================================== */
-
-app.get(
-
-    "/api/me",
-
-    (req, res) => {
-
-        /*
-           Prevent cached authentication responses.
-        */
-
-        res.set(
-            "Cache-Control",
-            "no-store"
-        );
-
-
-        if (
-            !req.isAuthenticated()
-        ) {
-
-            return res
-
-                .status(401)
-
-                .json({
-
-                    authenticated:
-                        false
-
-                });
-
-        }
-
-
-        res.json({
-
-            authenticated:
-                true,
-
-            user:
-                req.user
+            res.redirect(
+                `${FRONTEND_URL}/?login=success`
+            );
 
         });
 
     }
-
 );
 
-
-/* ==========================================
-   LOGOUT
-========================================== */
+// ======================================================
+// CURRENT USER
+// ======================================================
 
 app.get(
+    "/api/me",
 
-    "/auth/logout",
+    function (req, res) {
 
-    (req, res) => {
-
-        req.logout(
-
-            function(err) {
-
-                if (err) {
-
-                    return res
-
-                        .status(500)
-
-                        .json({
-
-                            success:
-                                false,
-
-                            message:
-                                "Logout failed"
-
-                        });
-
-                }
-
-
-                req.session.destroy(
-
-                    () => {
-
-                        res.redirect(
-
-                            process.env
-                                .FRONTEND_URL
-
-                        );
-
-                    }
-
-                );
-
-            }
-
+        console.log(
+            "Checking session..."
         );
 
-    }
+        console.log(
+            "Authenticated:",
+            req.isAuthenticated()
+        );
 
-);
+        if (!req.isAuthenticated()) {
 
+            return res.status(401).json({
 
-/* ==========================================
-   404
-========================================== */
+                authenticated: false,
 
-app.use(
-
-    (req, res) => {
-
-        res
-
-            .status(404)
-
-            .json({
-
-                success:
-                    false,
-
-                message:
-                    "Route not found"
+                message: "No active session"
 
             });
 
-    }
+        }
 
+        return res.json({
+
+            authenticated: true,
+
+            user: {
+
+                id: req.user.id,
+
+                name: req.user.name,
+
+                email: req.user.email,
+
+                photo: req.user.photo
+
+            }
+
+        });
+
+    }
 );
 
+// ======================================================
+// LOGOUT
+// ======================================================
 
-/* ==========================================
-   SERVER
-========================================== */
+app.get(
+    "/auth/logout",
+
+    function (req, res) {
+
+        req.logout(function (logoutError) {
+
+            if (logoutError) {
+
+                console.error(
+                    "LOGOUT ERROR:",
+                    logoutError
+                );
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    message: "Logout failed"
+
+                });
+
+            }
+
+            req.session.destroy(function (sessionError) {
+
+                if (sessionError) {
+
+                    console.error(
+                        "SESSION DESTROY ERROR:",
+                        sessionError
+                    );
+
+                    return res.status(500).json({
+
+                        success: false,
+
+                        message:
+                            "Session destroy failed"
+
+                    });
+
+                }
+
+                res.clearCookie(
+                    "bachroom.sid",
+                    {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none"
+                    }
+                );
+
+                return res.redirect(
+                    FRONTEND_URL
+                );
+
+            });
+
+        });
+
+    }
+);
+
+// ======================================================
+// 404
+// ======================================================
+
+app.use(function (req, res) {
+
+    res.status(404).json({
+
+        success: false,
+
+        message: "Route not found"
+
+    });
+
+});
+
+// ======================================================
+// ERROR HANDLER
+// ======================================================
+
+app.use(function (err, req, res, next) {
+
+    console.error(
+        "SERVER ERROR:",
+        err
+    );
+
+    res.status(500).json({
+
+        success: false,
+
+        message: "Internal server error"
+
+    });
+
+});
+
+// ======================================================
+// START SERVER
+// ======================================================
 
 app.listen(
-
     PORT,
 
-    () => {
+    function () {
 
         console.log(
             "-----------------------------------"
@@ -494,5 +391,4 @@ app.listen(
         );
 
     }
-
 );
