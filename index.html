@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>bachroom.com | Ranchi Rental Homes</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- =========================
+     LOADING SCREEN
+========================= -->
+
+<div id="loader">
+    <div class="loader-logo">
+        <div class="loader-home">🏠</div>
+        <h1>bachroom<span>.com</span></h1>
+        <p>Made by Abhishek Mishra</p>
+    </div>
+</div>
+
+
+<!-- =========================
+     LOGIN PAGE
+========================= -->
+
+<section id="loginPage" class="page active-page">
+
+    <div class="background-orb orb-one"></div>
+    <div class="background-orb orb-two"></div>
+    <div class="background-orb orb-three"></div>
+
+    <div class="login-container">
+
+        <div class="brand-section">
+            <div class="brand-icon">🏠</div>
+
+            <h1>bachroom<span>.com</span></h1>
+
+            <p class="tagline">
+                Find your perfect room & flat in Ranchi
+            </p>
+
+            <div class="creator-badge">
+                ✨ Made by Abhishek Mishra
+            </div>
+        </div>
+
+
+        <div class="login-card">
+
+            <div class="login-header">
+                <span class="small-label">WELCOME TO</span>
+                <h2>bachroom.com</h2>
+                <p>Choose how you want to continue</p>
+            </div>
+
+
+            <div class="login-options">
+
+                <button class="login-option customer-option"
+                        onclick="showCustomerLogin()">
+
+                    <div class="option-icon">👤</div>
+
+                    <div class="option-text">
+                        <strong>Customer Login</strong>
+                        <span>Find rooms & flats</span>
+                    </div>
+
+                    <div class="option-arrow">→</div>
+                </button>
+
+
+                <button class="login-option admin-option"
+                        onclick="showAdminLogin()">
+
+                    <div class="option-icon">🔐</div>
+
+                    <div class="option-text">
+                        <strong>Admin Login</strong>
+                        <span>Manage rental properties</span>
+                    </div>
+
+                    <div class="option-arrow">→</div>
+                </button>
+
+            </div>
+
+            <div class="login-footer">
+                <span>📍 Ranchi, Jharkhand</span>
+                <span>•</span>
+                <span>Made by Abhishek Mishra</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     CUSTOMER LOGIN
+========================= -->
+
+<section id="customerLoginPage" class="page">
+
+    <div class="simple-topbar">
+        <button onclick="goToLogin()" class="back-btn">← Back</button>
+
+        <div class="mini-logo">
+            🏠 bachroom<span>.com</span>
+        </div>
+
+        <div class="creator-mini">
+            Made by Abhishek Mishra
+        </div>
+    </div>
+
+
+    <div class="auth-wrapper">
+
+        <div class="auth-card">
+
+            <div class="auth-icon">
+                👤
+            </div>
+
+            <span class="small-label">CUSTOMER ACCOUNT</span>
+
+            <h2>Welcome back!</h2>
+
+            <p>
+                Login once and continue finding your perfect home.
+            </p>
+
+
+            <div class="input-group">
+
+                <label>Gmail Address</label>
+
+                <input
+                    type="email"
+                    id="customerEmail"
+                    placeholder="example@gmail.com"
+                >
+
+            </div>
+
+
+            <button class="primary-btn"
+                    onclick="customerLogin()">
+
+                <span>Continue with Gmail</span>
+                <span>→</span>
+
+            </button>
+
+
+            <div class="security-note">
+                🔒 Your account is stored locally in this demo.
+            </div>
+
+
+            <div class="auth-brand">
+                bachroom.com
+                <small>Made by Abhishek Mishra</small>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     ADMIN LOGIN
+========================= -->
+
+<section id="adminLoginPage" class="page">
+
+    <div class="simple-topbar">
+
+        <button onclick="goToLogin()" class="back-btn">
+            ← Back
+        </button>
+
+        <div class="mini-logo">
+            🏠 bachroom<span>.com</span>
+        </div>
+
+        <div class="creator-mini">
+            Made by Abhishek Mishra
+        </div>
+
+    </div>
+
+
+    <div class="auth-wrapper">
+
+        <div class="auth-card admin-auth">
+
+            <div class="auth-icon admin-icon">
+                🔐
+            </div>
+
+            <span class="small-label">ADMIN ACCESS</span>
+
+            <h2>Admin Portal</h2>
+
+            <p>
+                Manage rooms, flats and rental listings.
+            </p>
+
+
+            <div class="input-group">
+
+                <label>Admin Password</label>
+
+                <div class="password-box">
+
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        placeholder="Enter admin password"
+                    >
+
+                    <button onclick="togglePassword()">
+                        👁
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <button class="primary-btn admin-btn"
+                    onclick="adminLogin()">
+
+                <span>Enter Admin Panel</span>
+                <span>→</span>
+
+            </button>
+
+
+            <p class="admin-warning">
+                ⚠ Demo frontend security only
+            </p>
+
+
+            <div class="auth-brand">
+                bachroom.com
+                <small>Made by Abhishek Mishra</small>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     CUSTOMER DASHBOARD
+========================= -->
+
+<section id="customerDashboard" class="page dashboard-page">
+
+    <header class="navbar">
+
+        <div class="nav-brand" onclick="scrollToTop()">
+            <div class="nav-logo">🏠</div>
+
+            <div>
+                <strong>bachroom<span>.com</span></strong>
+                <small>Made by Abhishek Mishra</small>
+            </div>
+        </div>
+
+
+        <div class="nav-actions">
+
+            <div id="premiumStatus"
+                 class="premium-status">
+                FREE PLAN
+            </div>
+
+            <button onclick="showPremium()"
+                    class="premium-btn">
+                ⭐ Get Premium ₹299
+            </button>
+
+            <button onclick="logout()"
+                    class="logout-btn">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- HERO -->
+
+    <div class="hero-section">
+
+        <div class="hero-content">
+
+            <div class="hero-tag">
+                📍 RENTAL HOMES IN RANCHI
+            </div>
+
+            <h1>
+                Find a place
+                <span>you'll love.</span>
+            </h1>
+
+            <p>
+                Discover rooms, flats and rental homes
+                for students and families across Ranchi.
+            </p>
+
+            <div class="hero-credit">
+                ✨ Proudly made by Abhishek Mishra
+            </div>
+
+        </div>
+
+
+        <div class="hero-house">
+            🏠
+        </div>
+
+    </div>
+
+
+    <!-- SEARCH -->
+
+    <section class="search-section">
+
+        <div class="search-card">
+
+            <div class="search-title">
+                <span>🔎</span>
+
+                <div>
+                    <strong>Find your perfect place</strong>
+                    <small>Search by location, price or property type</small>
+                </div>
+            </div>
+
+
+            <div class="search-grid">
+
+                <div class="search-field">
+
+                    <label>Location</label>
+
+                    <input
+                        type="text"
+                        id="searchLocation"
+                        placeholder="e.g. Lalpur, Kanke, Morabadi"
+                        oninput="filterProperties()"
+                    >
+
+                </div>
+
+
+                <div class="search-field">
+
+                    <label>Property Type</label>
+
+                    <select id="searchType"
+                            onchange="filterProperties()">
+
+                        <option value="">All Types</option>
+                        <option value="Room">Single Room</option>
+                        <option value="1BHK">1 BHK</option>
+                        <option value="2BHK">2 BHK</option>
+                        <option value="3BHK">3 BHK</option>
+                        <option value="Flat">Full Flat</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="search-field">
+
+                    <label>Maximum Rent</label>
+
+                    <select id="searchPrice"
+                            onchange="filterProperties()">
+
+                        <option value="">Any Price</option>
+                        <option value="5000">₹5,000</option>
+                        <option value="8000">₹8,000</option>
+                        <option value="12000">₹12,000</option>
+                        <option value="15000">₹15,000</option>
+                        <option value="20000">₹20,000</option>
+
+                    </select>
+
+                </div>
+
+
+                <button class="search-button"
+                        onclick="filterProperties()">
+
+                    🔎 Search
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- STATS -->
+
+    <section class="stats-section">
+
+        <div class="stat-box">
+            <strong id="totalProperties">0</strong>
+            <span>Properties</span>
+        </div>
+
+        <div class="stat-box">
+            <strong>Ranchi</strong>
+            <span>City Coverage</span>
+        </div>
+
+        <div class="stat-box">
+            <strong>₹299</strong>
+            <span>Premium Plan</span>
+        </div>
+
+        <div class="stat-box">
+            <strong>5/day</strong>
+            <span>Contact Access</span>
+        </div>
+
+    </section>
+
+
+    <!-- PROPERTY SECTION -->
+
+    <main class="property-section">
+
+        <div class="section-heading">
+
+            <div>
+                <span class="small-label">
+                    RENTAL COLLECTION
+                </span>
+
+                <h2>
+                    Explore available homes
+                </h2>
+
+                <p>
+                    Choose from rooms and flats uploaded by our admin.
+                </p>
+            </div>
+
+            <div id="resultCount"
+                 class="result-count">
+                0 properties
+            </div>
+
+        </div>
+
+
+        <div id="propertyGrid"
+             class="property-grid">
+        </div>
+
+
+        <div id="noProperties"
+             class="empty-state">
+
+            <div>🏠</div>
+
+            <h3>No properties found</h3>
+
+            <p>
+                Try changing your search filters.
+            </p>
+
+        </div>
+
+    </main>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+        <div class="footer-logo">
+            🏠 bachroom.com
+        </div>
+
+        <p>
+            Helping students and families find rental homes in Ranchi.
+        </p>
+
+        <strong>
+            Made by Abhishek Mishra
+        </strong>
+
+        <small>
+            © 2026 bachroom.com — Demo Version
+        </small>
+
+    </footer>
+
+</section>
+
+
+<!-- =========================
+     PROPERTY DETAIL MODAL
+========================= -->
+
+<div id="propertyModal"
+     class="modal">
+
+    <div class="modal-overlay"
+         onclick="closePropertyModal()">
+    </div>
+
+    <div class="property-detail-modal">
+
+        <button class="modal-close"
+                onclick="closePropertyModal()">
+            ×
+        </button>
+
+
+        <div id="modalImages"
+             class="modal-images">
+        </div>
+
+
+        <div class="property-detail-content">
+
+            <div class="detail-badge"
+                 id="modalType">
+                Room
+            </div>
+
+            <h2 id="modalTitle">
+                Property
+            </h2>
+
+            <div class="modal-price"
+                 id="modalPrice">
+                ₹0/month
+            </div>
+
+
+            <div class="detail-info">
+
+                <div>
+                    📍
+                    <span id="modalAddress">
+                    </span>
+                </div>
+
+                <div>
+                    🏠
+                    <span id="modalType2">
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="premium-contact-box">
+
+                <div class="premium-lock">
+                    🔒
+                </div>
+
+                <h3>
+                    Owner contact is Premium
+                </h3>
+
+                <p>
+                    Get the ₹299 Premium Plan to unlock
+                    address and phone number.
+                </p>
+
+                <button onclick="showPremium()"
+                        class="primary-btn">
+                    ⭐ Unlock Contact
+                </button>
+
+            </div>
+
+
+            <div class="made-by">
+                Made by Abhishek Mishra
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     PREMIUM MODAL
+========================= -->
+
+<div id="premiumModal"
+     class="modal">
+
+    <div class="modal-overlay"
+         onclick="closePremium()">
+    </div>
+
+
+    <div class="premium-modal">
+
+        <button class="modal-close"
+                onclick="closePremium()">
+            ×
+        </button>
+
+
+        <div class="premium-crown">
+            👑
+        </div>
+
+
+        <span class="small-label">
+            PREMIUM ACCESS
+        </span>
+
+
+        <h2>
+            Unlock Ranchi Rentals
+        </h2>
+
+
+        <p>
+            Get access to owner contact information
+            for up to <strong>5 properties every day.</strong>
+        </p>
+
+
+        <div class="premium-price">
+            <small>ONLY</small>
+            <strong>₹299</strong>
+            <span>Premium Plan</span>
+        </div>
+
+
+        <div class="premium-benefits">
+
+            <div>✓ View owner phone number</div>
+            <div>✓ View complete address</div>
+            <div>✓ Access 5 properties every day</div>
+            <div>✓ Browse all available rentals</div>
+
+        </div>
+
+
+        <div class="qr-container">
+
+            <h3>
+                Scan & Pay ₹299
+            </h3>
+
+            <!-- Replace this demo QR with your actual payment QR -->
+            <div class="qr-placeholder">
+                <div class="qr-inner">
+                    ₹299
+                </div>
+            </div>
+
+            <p>
+                Scan using any UPI app
+            </p>
+
+            <small>
+                After payment, submit your UPI details below.
+            </small>
+
+        </div>
+
+
+        <div class="payment-form">
+
+            <div class="input-group">
+
+                <label>Name</label>
+
+                <input
+                    type="text"
+                    id="paymentName"
+                    placeholder="Your full name"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label>UPI ID</label>
+
+                <input
+                    type="text"
+                    id="paymentUpi"
+                    placeholder="example@upi"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label>Mobile Number</label>
+
+                <input
+                    type="tel"
+                    id="paymentMobile"
+                    placeholder="10 digit mobile number"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label>Transaction ID / UTR</label>
+
+                <input
+                    type="text"
+                    id="paymentTxn"
+                    placeholder="Enter payment reference"
+                >
+
+            </div>
+
+
+            <button class="primary-btn"
+                    onclick="submitPayment()">
+
+                Submit Payment Details →
+
+            </button>
+
+        </div>
+
+
+        <div class="made-by">
+            Made by Abhishek Mishra
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     ADMIN DASHBOARD
+========================= -->
+
+<section id="adminDashboard"
+         class="page admin-dashboard">
+
+    <header class="navbar admin-nav">
+
+        <div class="nav-brand">
+
+            <div class="nav-logo">
+                🔐
+            </div>
+
+            <div>
+                <strong>
+                    bachroom<span>.com</span>
+                </strong>
+
+                <small>
+                    Admin Panel • Made by Abhishek Mishra
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="nav-actions">
+
+            <button onclick="showCustomerPreview()"
+                    class="preview-btn">
+                👁 Preview Website
+            </button>
+
+            <button onclick="logout()"
+                    class="logout-btn">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <main class="admin-main">
+
+        <div class="admin-welcome">
+
+            <div>
+
+                <span class="small-label">
+                    ADMIN CONTROL CENTER
+                </span>
+
+                <h1>
+                    Manage your rentals
+                </h1>
+
+                <p>
+                    Upload and manage rooms and flats available in Ranchi.
+                </p>
+
+            </div>
+
+            <div class="admin-made">
+                Made by Abhishek Mishra
+            </div>
+
+        </div>
+
+
+        <!-- ADMIN STATS -->
+
+        <div class="admin-stats">
+
+            <div class="admin-stat">
+                <span>🏠</span>
+                <strong id="adminTotal">
+                    0
+                </strong>
+                <small>Total Properties</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>⭐</span>
+                <strong>
+                    ₹299
+                </strong>
+                <small>Premium Price</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>👥</span>
+                <strong>
+                    5
+                </strong>
+                <small>Daily Contacts</small>
+            </div>
+
+        </div>
+
+
+        <!-- UPLOAD FORM -->
+
+        <div class="admin-card">
+
+            <div class="admin-card-header">
+
+                <div>
+
+                    <span class="small-label">
+                        PROPERTY MANAGEMENT
+                    </span>
+
+                    <h2>
+                        Upload New Rental
+                    </h2>
+
+                </div>
+
+                <div class="upload-icon">
+                    📸
+                </div>
+
+            </div>
+
+
+            <form id="propertyForm"
+                  onsubmit="uploadProperty(event)">
+
+
+                <!-- PHOTO UPLOAD -->
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+
+                        <span>01</span>
+
+                        <div>
+                            <strong>Property Photos</strong>
+                            <small>
+                                Minimum 2 and maximum 10 photos
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <label class="photo-upload">
+
+                        <input
+                            type="file"
+                            id="propertyPhotos"
+                            accept="image/*"
+                            multiple
+                            onchange="previewPhotos()"
+                        >
+
+                        <div class="upload-placeholder">
+
+                            <div>📸</div>
+
+                            <strong>
+                                Click to upload photos
+                            </strong>
+
+                            <span>
+                                JPG, PNG • 2–10 images
+                            </span>
+
+                        </div>
+
+                    </label>
+
+
+                    <div id="photoPreview"
+                         class="photo-preview">
+                    </div>
+
+                </div>
+
+
+                <!-- PROPERTY INFO -->
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+
+                        <span>02</span>
+
+                        <div>
+                            <strong>Property Details</strong>
+                            <small>
+                                Tell customers about this property
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+
+                            <label>
+                                Property Title *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="propertyTitle"
+                                placeholder="Beautiful room near Lalpur"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>
+                                Property Type *
+                            </label>
+
+                            <select id="propertyType"
+                                    required>
+
+                                <option value="">
+                                    Select Type
+                                </option>
+
+                                <option value="Room">
+                                    Single Room
+                                </option>
+
+                                <option value="1BHK">
+                                    1 BHK
+                                </option>
+
+                                <option value="2BHK">
+                                    2 BHK
+                                </option>
+
+                                <option value="3BHK">
+                                    3 BHK
+                                </option>
+
+                                <option value="Flat">
+                                    Full Flat
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>
+                                Monthly Rent *
+                            </label>
+
+                            <input
+                                type="number"
+                                id="propertyPrice"
+                                placeholder="7000"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>
+                                Location *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="propertyLocation"
+                                placeholder="Lalpur, Ranchi"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CONTACT INFO -->
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+
+                        <span>03</span>
+
+                        <div>
+                            <strong>Owner Contact</strong>
+                            <small>
+                                Visible only to Premium customers
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+
+                            <label>
+                                Full Address *
+                            </label>
+
+                            <textarea
+                                id="propertyAddress"
+                                placeholder="Complete property address"
+                                required
+                            ></textarea>
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>
+                                Owner Phone Number *
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="propertyPhone"
+                                placeholder="9876543210"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button type="submit"
+                        class="upload-property-btn">
+
+                    <span>🚀</span>
+
+                    Publish Rental Property
+
+                </button>
+
+
+            </form>
+
+        </div>
+
+
+        <!-- ADMIN PROPERTY LIST -->
+
+        <div class="admin-card">
+
+            <div class="admin-card-header">
+
+                <div>
+
+                    <span class="small-label">
+                        LIVE LISTINGS
+                    </span>
+
+                    <h2>
+                        Uploaded Properties
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div id="adminPropertyList"
+                 class="admin-property-list">
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <footer class="footer admin-footer">
+
+        <div class="footer-logo">
+            🏠 bachroom.com
+        </div>
+
+        <strong>
+            Made by Abhishek Mishra
+        </strong>
+
+    </footer>
+
+</section>
+
+
+<!-- TOAST -->
+
+<div id="toast"
+     class="toast">
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
