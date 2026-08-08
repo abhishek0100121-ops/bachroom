@@ -124,9 +124,7 @@ passport.use(
         function(
 
             accessToken,
-
             refreshToken,
-
             profile,
 
             done
@@ -288,9 +286,38 @@ app.get(
         res
     ) {
 
-        res.redirect(
+        /*
+           IMPORTANT:
 
-            `${process.env.FRONTEND_URL}/?login=success`
+           Save the Passport session completely
+           before redirecting to the frontend.
+        */
+
+        req.session.save(
+
+            function(err) {
+
+                if (err) {
+
+                    console.error(
+                        "Google session save failed:",
+                        err
+                    );
+
+                    return res.redirect(
+                        `${process.env.FRONTEND_URL}/?login=failed`
+                    );
+
+                }
+
+
+                res.redirect(
+
+                    `${process.env.FRONTEND_URL}/?login=success`
+
+                );
+
+            }
 
         );
 
@@ -308,6 +335,16 @@ app.get(
     "/api/me",
 
     (req, res) => {
+
+        /*
+           Prevent cached authentication responses.
+        */
+
+        res.set(
+            "Cache-Control",
+            "no-store"
+        );
+
 
         if (
             !req.isAuthenticated()
