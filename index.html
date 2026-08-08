@@ -274,123 +274,84 @@
      CUSTOMER DASHBOARD
 ========================= -->
 
-<section id="customerDashboard" class="page dashboard-page">
+<!-- =========================
+     CUSTOMER LOGIN
+========================= -->
 
-    <header class="navbar">
+<section id="customerLoginPage" class="page">
 
-        <div class="nav-brand" onclick="scrollToTop()">
-            <div class="nav-logo">🏠</div>
+    <div class="simple-topbar">
 
-            <div>
-                <strong>bachroom<span>.com</span></strong>
-                <small>Made by Abhishek Mishra</small>
-            </div>
+        <button onclick="goToLogin()" class="back-btn">
+            ← Back
+        </button>
+
+        <div class="mini-logo">
+            🏠 bachroom<span>.com</span>
         </div>
 
-
-        <div class="nav-actions">
-
-            <div id="premiumStatus"
-                 class="premium-status">
-                FREE PLAN
-            </div>
-
-            <button onclick="showPremium()"
-                    class="premium-btn">
-                ⭐ Get Premium ₹299
-            </button>
-
-            <button onclick="logout()"
-                    class="logout-btn">
-                Logout
-            </button>
-
-        </div>
-
-    </header>
-
-
-    <!-- HERO -->
-
-    <div class="hero-section">
-
-        <div class="hero-content">
-
-            <div class="hero-tag">
-                📍 RENTAL HOMES IN RANCHI
-            </div>
-
-            <h1>
-                Find a place
-                <span>you'll love.</span>
-            </h1>
-
-            <p>
-                Discover rooms, flats and rental homes
-                for students and families across Ranchi.
-            </p>
-
-            <div class="hero-credit">
-                ✨ Proudly made by Abhishek Mishra
-            </div>
-
-        </div>
-
-
-        <div class="hero-house">
-            🏠
+        <div class="creator-mini">
+            Made by Abhishek Mishra
         </div>
 
     </div>
 
 
-    <!-- SEARCH -->
+    <div class="auth-wrapper">
 
-    <section class="search-section">
+        <div class="auth-card">
 
-        <div class="search-card">
+            <div class="auth-icon">
+                👤
+            </div>
 
-            <div class="search-title">
-                <span>🔎</span>
+            <span class="small-label">
+                CUSTOMER ACCOUNT
+            </span>
 
-                <div>
-                    <strong>Find your perfect place</strong>
-                    <small>Search by location, price or property type</small>
-                </div>
+            <h2>Welcome to bachroom.com</h2>
+
+            <p>
+                Sign in securely with your Google account
+                and start finding your perfect home.
+            </p>
+
+
+            <button
+                class="primary-btn"
+                onclick="googleLogin()"
+                type="button"
+            >
+
+                <span>Continue with Google</span>
+
+                <span>→</span>
+
+            </button>
+
+
+            <div class="security-note">
+
+                🔒 Secure Google authentication
+
             </div>
 
 
-            <div class="search-grid">
+            <div class="auth-brand">
 
-                <div class="search-field">
+                bachroom.com
 
-                    <label>Location</label>
+                <small>
+                    Made by Abhishek Mishra
+                </small>
 
-                    <input
-                        type="text"
-                        id="searchLocation"
-                        placeholder="e.g. Lalpur, Kanke, Morabadi"
-                        oninput="filterProperties()"
-                    >
+            </div>
 
-                </div>
+        </div>
 
+    </div>
 
-                <div class="search-field">
-
-                    <label>Property Type</label>
-
-                    <select id="searchType"
-                            onchange="filterProperties()">
-
-                        <option value="">All Types</option>
-                        <option value="Room">Single Room</option>
-                        <option value="1BHK">1 BHK</option>
-                        <option value="2BHK">2 BHK</option>
-                        <option value="3BHK">3 BHK</option>
-                        <option value="Flat">Full Flat</option>
-
-                    </select>
+</section>
 
                 </div>
 
