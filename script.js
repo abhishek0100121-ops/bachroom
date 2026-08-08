@@ -4,18 +4,10 @@
    Made by Abhishek Mishra
 ========================================== */
 
-
-/* ==========================================
-   DEMO ADMIN PASSWORD
-
-   IMPORTANT:
-   This is NOT secure because JavaScript
-   runs in the user's browser.
-
-   Production version should use backend.
-========================================== */
-
 const ADMIN_PASSWORD = "Abhishek@299";
+
+const BACKEND_URL =
+    "https://bachroom-backend.onrender.com";
 
 
 /* ==========================================
@@ -23,10 +15,14 @@ const ADMIN_PASSWORD = "Abhishek@299";
 ========================================== */
 
 let properties =
-    JSON.parse(localStorage.getItem("bachroom_properties")) || [];
+    JSON.parse(
+        localStorage.getItem("bachroom_properties")
+    ) || [];
 
 let currentUser =
-    JSON.parse(localStorage.getItem("bachroom_user")) || null;
+    JSON.parse(
+        localStorage.getItem("bachroom_user")
+    ) || null;
 
 let isPremium =
     localStorage.getItem("bachroom_premium") === "true";
@@ -60,7 +56,87 @@ window.addEventListener("load", () => {
 
     showStoredSession();
 
+    prepareGoogleLoginUI();
+
+    checkGoogleLogin();
+
 });
+
+
+/* ==========================================
+   PREPARE GOOGLE LOGIN UI
+========================================== */
+
+function prepareGoogleLoginUI() {
+
+    const email =
+        document.getElementById(
+            "customerEmail"
+        );
+
+    if (email) {
+
+        email.style.display = "none";
+
+        email.value = "";
+
+        email.removeAttribute(
+            "required"
+        );
+
+    }
+
+
+    document
+        .querySelectorAll(
+            "#customerLoginPage button"
+        )
+        .forEach(button => {
+
+            const text =
+                (
+                    button.innerText || ""
+                ).toLowerCase();
+
+
+            if (
+                text.includes(
+                    "continue with gmail"
+                ) ||
+                text.includes(
+                    "continue with google"
+                )
+            ) {
+
+                button.setAttribute(
+                    "onclick",
+                    "customerLogin()"
+                );
+
+
+                const spans =
+                    button.querySelectorAll(
+                        "span"
+                    );
+
+
+                if (spans.length) {
+
+                    spans[0].textContent =
+                        "Continue with Google";
+
+                } else {
+
+                    button.textContent =
+                        "Continue with Google →";
+
+                }
+
+            }
+
+        });
+
+}
 
 
 /* ==========================================
@@ -73,7 +149,9 @@ function hideAllPages() {
         .querySelectorAll(".page")
         .forEach(page => {
 
-            page.classList.remove("active-page");
+            page.classList.remove(
+                "active-page"
+            );
 
         });
 
@@ -84,17 +162,28 @@ function showPage(id) {
 
     hideAllPages();
 
+
     const page =
         document.getElementById(id);
 
+
     if (page) {
-        page.classList.add("active-page");
+
+        page.classList.add(
+            "active-page"
+        );
+
     }
 
+
     window.scrollTo({
+
         top: 0,
+
         behavior: "smooth"
+
     });
+
 }
 
 
@@ -111,45 +200,269 @@ function goToLogin() {
 
 function showCustomerLogin() {
 
-    showPage("customerLoginPage");
+    showPage(
+        "customerLoginPage"
+    );
+
+    prepareGoogleLoginUI();
 
 }
 
+
 function showAdminLogin() {
 
-    showPage("adminLoginPage");
+    showPage(
+        "adminLoginPage"
+    );
+
 
     setTimeout(() => {
 
         const password =
-            document.getElementById("adminPassword");
+            document.getElementById(
+                "adminPassword"
+            );
+
 
         if (password) {
+
             password.focus();
+
         }
 
     }, 300);
+
 }
 
 
 /* ==========================================
-   CUSTOMER LOGIN
+   REAL GOOGLE LOGIN
 ========================================== */
 
-/* ==========================================
-   REAL GOOGLE CUSTOMER LOGIN
-========================================== */
+/*
+   IMPORTANT:
 
-const BACKEND_URL =
-    "https://bachroom-backend.onrender.com";
+   Old demo login has been removed.
 
+   The old system accepted any Gmail address.
 
-function googleLogin() {
+   Now clicking customerLogin()
+   redirects to the real Google OAuth backend.
+*/
+
+function customerLogin() {
 
     window.location.href =
         `${BACKEND_URL}/auth/google`;
 
 }
+
+
+/*
+   Compatibility with any HTML button
+   using onclick="googleLogin()"
+*/
+
+function googleLogin() {
+
+    customerLogin();
+
+}
+
+
+/* ==========================================
+   GOOGLE LOGIN CALLBACK
+========================================== */
+
+async function checkGoogleLogin() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const login =
+        params.get("login");
+
+
+    /*
+       Google authentication failed
+    */
+
+    if (login === "failed") {
+
+        showPage("loginPage");
+
+        showToast(
+            "Google login failed. Please try again."
+        );
+
+
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       Nothing to check if this
+       is a normal page load
+    */
+
+    if (login !== "success") {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${BACKEND_URL}/api/me`,
+                {
+
+                    method: "GET",
+
+                    credentials: "include",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json"
+
+                    }
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Authentication request failed: ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !data.authenticated ||
+            !data.user
+        ) {
+
+            throw new Error(
+                "Google session was not authenticated."
+            );
+
+        }
+
+
+        /*
+           Save REAL Google user
+        */
+
+        currentUser = {
+
+            ...data.user,
+
+            loginDate:
+                new Date().toISOString()
+
+        };
+
+
+        localStorage.setItem(
+
+            "bachroom_user",
+
+            JSON.stringify(
+                currentUser
+            )
+
+        );
+
+
+        /*
+           Remove ?login=success
+           from browser URL
+        */
+
+        window.history.replaceState(
+
+            {},
+
+            document.title,
+
+            window.location.pathname
+
+        );
+
+
+        /*
+           Open customer dashboard
+        */
+
+        showCustomerDashboard();
+
+
+        showToast(
+
+            `Welcome, ${
+                currentUser.name ||
+                currentUser.email
+            }!`
+
+        );
+
+
+    } catch (error) {
+
+        console.error(
+
+            "Google login verification failed:",
+
+            error
+
+        );
+
+
+        window.history.replaceState(
+
+            {},
+
+            document.title,
+
+            window.location.pathname
+
+        );
+
+
+        showPage("loginPage");
+
+
+        showToast(
+
+            "Google login verification failed. Please try again."
+
+        );
+
+    }
+
+}
+
 
 /* ==========================================
    ADMIN LOGIN
@@ -157,10 +470,16 @@ function googleLogin() {
 
 function adminLogin() {
 
+    const input =
+        document.getElementById(
+            "adminPassword"
+        );
+
+
     const password =
-        document
-            .getElementById("adminPassword")
-            .value;
+        input
+            ? input.value
+            : "";
 
 
     if (!password) {
@@ -170,16 +489,21 @@ function adminLogin() {
         );
 
         return;
+
     }
 
 
-    if (password !== ADMIN_PASSWORD) {
+    if (
+        password !==
+        ADMIN_PASSWORD
+    ) {
 
         showToast(
             "Incorrect admin password."
         );
 
         return;
+
     }
 
 
@@ -199,6 +523,7 @@ function adminLogin() {
         showAdminDashboard();
 
     }, 400);
+
 }
 
 
@@ -209,9 +534,18 @@ function adminLogin() {
 function togglePassword() {
 
     const input =
-        document.getElementById("adminPassword");
+        document.getElementById(
+            "adminPassword"
+        );
 
-    if (input.type === "password") {
+
+    if (!input) return;
+
+
+    if (
+        input.type ===
+        "password"
+    ) {
 
         input.type = "text";
 
@@ -220,6 +554,7 @@ function togglePassword() {
         input.type = "password";
 
     }
+
 }
 
 
@@ -229,31 +564,23 @@ function togglePassword() {
 
 function showStoredSession() {
 
-    const admin =
-        localStorage.getItem("bachroom_admin");
+    /*
+       Do not automatically force
+       dashboard on page load.
 
-
-    if (admin === "true") {
-
-        // Don't automatically force admin dashboard.
-        // Login page remains first screen.
-
-        return;
-    }
-
-
-    if (currentUser) {
-
-        // User can still see login screen first.
-        return;
-    }
+       Real Google session is checked
+       only after ?login=success.
+    */
 
 }
 
 
 function showCustomerDashboard() {
 
-    showPage("customerDashboard");
+    showPage(
+        "customerDashboard"
+    );
+
 
     renderProperties();
 
@@ -266,7 +593,10 @@ function showCustomerDashboard() {
 
 function showAdminDashboard() {
 
-    showPage("adminDashboard");
+    showPage(
+        "adminDashboard"
+    );
+
 
     renderAdminProperties();
 
@@ -283,24 +613,30 @@ function logout() {
 
     currentUser = null;
 
+
     localStorage.removeItem(
         "bachroom_user"
     );
 
+
     localStorage.removeItem(
         "bachroom_admin"
     );
+
 
     showToast(
         "Logged out successfully."
     );
 
 
-    setTimeout(() => {
+    /*
+       Also logout from real
+       Google session on backend.
+    */
 
-        showPage("loginPage");
+    window.location.href =
+        `${BACKEND_URL}/auth/logout`;
 
-    }, 300);
 }
 
 
@@ -311,10 +647,25 @@ function logout() {
 function previewPhotos() {
 
     const input =
-        document.getElementById("propertyPhotos");
+        document.getElementById(
+            "propertyPhotos"
+        );
+
 
     const preview =
-        document.getElementById("photoPreview");
+        document.getElementById(
+            "photoPreview"
+        );
+
+
+    if (
+        !input ||
+        !preview
+    ) {
+
+        return;
+
+    }
 
 
     uploadedImages = [];
@@ -325,6 +676,7 @@ function previewPhotos() {
         preview.innerHTML = "";
 
         return;
+
     }
 
 
@@ -337,49 +689,65 @@ function previewPhotos() {
             "Please select minimum 2 and maximum 10 photos."
         );
 
+
         input.value = "";
 
         preview.innerHTML = "";
 
         return;
+
     }
 
 
     preview.innerHTML = "";
 
 
-    Array.from(input.files)
+    Array
+        .from(input.files)
         .forEach(file => {
 
             const reader =
                 new FileReader();
 
 
-            reader.onload = function(event) {
+            reader.onload =
+                function(event) {
 
-                uploadedImages.push(
-                    event.target.result
-                );
-
-
-                const div =
-                    document.createElement("div");
-
-                div.className =
-                    "preview-image";
+                    uploadedImages.push(
+                        event.target.result
+                    );
 
 
-                div.innerHTML =
-                    `<img src="${event.target.result}"
-                          alt="Property Photo">`;
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
 
 
-                preview.appendChild(div);
+                    div.className =
+                        "preview-image";
 
-            };
+
+                    div.innerHTML = `
+
+                        <img
+                            src="${event.target.result}"
+                            alt="Property Photo"
+                        >
+
+                    `;
 
 
-            reader.readAsDataURL(file);
+                    preview.appendChild(
+                        div
+                    );
+
+                };
+
+
+            reader.readAsDataURL(
+                file
+            );
 
         });
 
@@ -395,82 +763,110 @@ function uploadProperty(event) {
     event.preventDefault();
 
 
+    const input =
+        document.getElementById(
+            "propertyPhotos"
+        );
+
+
     const files =
-        document
-            .getElementById("propertyPhotos")
-            .files;
+        input
+            ? input.files
+            : [];
 
 
-    if (!files || files.length < 2) {
+    if (
+        !files ||
+        files.length < 2
+    ) {
 
         showToast(
             "Please upload at least 2 photos."
         );
 
         return;
+
     }
 
 
-    if (files.length > 10) {
+    if (
+        files.length > 10
+    ) {
 
         showToast(
             "Maximum 10 photos are allowed."
         );
 
         return;
+
     }
 
 
-    if (uploadedImages.length < 2) {
+    if (
+        uploadedImages.length < 2
+    ) {
 
         showToast(
             "Photos are still processing. Please wait."
         );
 
         return;
+
     }
 
 
+    const getValue =
+        id => {
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            return element
+                ? element.value.trim()
+                : "";
+
+        };
+
+
     const title =
-        document
-            .getElementById("propertyTitle")
-            .value
-            .trim();
+        getValue(
+            "propertyTitle"
+        );
 
 
     const type =
-        document
-            .getElementById("propertyType")
-            .value;
+        document.getElementById(
+            "propertyType"
+        )?.value || "";
 
 
     const price =
         Number(
-            document
-                .getElementById("propertyPrice")
-                .value
+            document.getElementById(
+                "propertyPrice"
+            )?.value || 0
         );
 
 
     const location =
-        document
-            .getElementById("propertyLocation")
-            .value
-            .trim();
+        getValue(
+            "propertyLocation"
+        );
 
 
     const address =
-        document
-            .getElementById("propertyAddress")
-            .value
-            .trim();
+        getValue(
+            "propertyAddress"
+        );
 
 
     const phone =
-        document
-            .getElementById("propertyPhone")
-            .value
-            .trim();
+        getValue(
+            "propertyPhone"
+        );
 
 
     if (
@@ -487,6 +883,7 @@ function uploadProperty(event) {
         );
 
         return;
+
     }
 
 
@@ -495,23 +892,17 @@ function uploadProperty(event) {
         id:
             Date.now(),
 
-        title:
-            title,
+        title,
 
-        type:
-            type,
+        type,
 
-        price:
-            price,
+        price,
 
-        location:
-            location,
+        location,
 
-        address:
-            address,
+        address,
 
-        phone:
-            phone,
+        phone,
 
         images:
             uploadedImages,
@@ -528,8 +919,13 @@ function uploadProperty(event) {
 
 
     localStorage.setItem(
+
         "bachroom_properties",
-        JSON.stringify(properties)
+
+        JSON.stringify(
+            properties
+        )
+
     );
 
 
@@ -539,13 +935,23 @@ function uploadProperty(event) {
 
 
     document
-        .getElementById("propertyForm")
-        .reset();
+        .getElementById(
+            "propertyForm"
+        )
+        ?.reset();
 
 
-    document
-        .getElementById("photoPreview")
-        .innerHTML = "";
+    const preview =
+        document.getElementById(
+            "photoPreview"
+        );
+
+
+    if (preview) {
+
+        preview.innerHTML = "";
+
+    }
 
 
     uploadedImages = [];
@@ -578,70 +984,123 @@ function renderAdminProperties() {
     if (!properties.length) {
 
         container.innerHTML = `
-            <div class="empty-state"
-                 style="display:block;padding:40px;">
+
+            <div
+                class="empty-state"
+                style="
+                    display:block;
+                    padding:40px;
+                "
+            >
+
                 <div>🏠</div>
-                <h3>No properties uploaded yet</h3>
+
+                <h3>
+                    No properties uploaded yet
+                </h3>
+
                 <p>
                     Upload your first rental property above.
                 </p>
+
             </div>
+
         `;
 
         return;
+
     }
 
 
     container.innerHTML = "";
 
 
-    properties.forEach(property => {
+    properties.forEach(
+        property => {
 
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "admin-property-item";
-
-
-        item.innerHTML = `
-
-            <img
-                src="${property.images[0]}"
-                alt="${escapeHTML(property.title)}"
-            >
-
-            <div class="admin-property-details">
-
-                <strong>
-                    ${escapeHTML(property.title)}
-                </strong>
-
-                <span>
-                    ${escapeHTML(property.location)}
-                    • ₹${property.price}/month
-                </span>
-
-                <span>
-                    ${property.type}
-                </span>
-
-            </div>
-
-            <button
-                class="delete-btn"
-                onclick="deleteProperty(${property.id})"
-                title="Delete property"
-            >
-                🗑
-            </button>
-
-        `;
+            const item =
+                document.createElement(
+                    "div"
+                );
 
 
-        container.appendChild(item);
+            item.className =
+                "admin-property-item";
 
-    });
+
+            item.innerHTML = `
+
+                <img
+                    src="${
+                        property.images?.[0] ||
+                        ""
+                    }"
+                    alt="${
+                        escapeHTML(
+                            property.title
+                        )
+                    }"
+                >
+
+
+                <div
+                    class="admin-property-details"
+                >
+
+                    <strong>
+
+                        ${
+                            escapeHTML(
+                                property.title
+                            )
+                        }
+
+                    </strong>
+
+
+                    <span>
+
+                        ${
+                            escapeHTML(
+                                property.location
+                            )
+                        }
+
+                        • ₹${property.price}/month
+
+                    </span>
+
+
+                    <span>
+
+                        ${
+                            escapeHTML(
+                                property.type
+                            )
+                        }
+
+                    </span>
+
+                </div>
+
+
+                <button
+                    class="delete-btn"
+                    onclick="deleteProperty(${property.id})"
+                    title="Delete property"
+                >
+                    🗑
+                </button>
+
+            `;
+
+
+            container.appendChild(
+                item
+            );
+
+        }
+    );
 
 }
 
@@ -658,19 +1117,30 @@ function deleteProperty(id) {
         );
 
 
-    if (!confirmDelete) return;
+    if (!confirmDelete) {
+
+        return;
+
+    }
 
 
     properties =
         properties.filter(
+
             property =>
                 property.id !== id
+
         );
 
 
     localStorage.setItem(
+
         "bachroom_properties",
-        JSON.stringify(properties)
+
+        JSON.stringify(
+            properties
+        )
+
     );
 
 
@@ -692,12 +1162,15 @@ function deleteProperty(id) {
    CUSTOMER PROPERTY RENDER
 ========================================== */
 
-function renderProperties(list = properties) {
+function renderProperties(
+    list = properties
+) {
 
     const grid =
         document.getElementById(
             "propertyGrid"
         );
+
 
     const empty =
         document.getElementById(
@@ -713,36 +1186,67 @@ function renderProperties(list = properties) {
 
     if (!list.length) {
 
-        empty.style.display =
-            "block";
+        if (empty) {
 
-        document.getElementById(
-            "resultCount"
-        ).textContent =
-            "0 properties";
+            empty.style.display =
+                "block";
+
+        }
+
+
+        const resultCount =
+            document.getElementById(
+                "resultCount"
+            );
+
+
+        if (resultCount) {
+
+            resultCount.textContent =
+                "0 properties";
+
+        }
+
 
         return;
+
     }
 
 
-    empty.style.display =
-        "none";
+    if (empty) {
+
+        empty.style.display =
+            "none";
+
+    }
 
 
-    document.getElementById(
-        "resultCount"
-    ).textContent =
-        `${list.length} properties`;
+    const resultCount =
+        document.getElementById(
+            "resultCount"
+        );
+
+
+    if (resultCount) {
+
+        resultCount.textContent =
+            `${list.length} properties`;
+
+    }
 
 
     list.forEach(
         (property, index) => {
 
             const card =
-                document.createElement("article");
+                document.createElement(
+                    "article"
+                );
+
 
             card.className =
                 "property-card";
+
 
             card.style.animationDelay =
                 `${index * 0.05}s`;
@@ -757,17 +1261,30 @@ function renderProperties(list = properties) {
 
             card.innerHTML = `
 
-                <div class="property-image">
+                <div
+                    class="property-image"
+                >
 
                     ${
                         firstImage
+
                         ?
-                        `<img
+
+                        `
+                        <img
                             src="${firstImage}"
-                            alt="${escapeHTML(property.title)}"
-                        >`
+                            alt="${
+                                escapeHTML(
+                                    property.title
+                                )
+                            }"
+                        >
+                        `
+
                         :
-                        `<div
+
+                        `
+                        <div
                             style="
                                 width:100%;
                                 height:100%;
@@ -777,37 +1294,76 @@ function renderProperties(list = properties) {
                             "
                         >
                             🏠
-                        </div>`
+                        </div>
+                        `
                     }
 
-                    <div class="property-type-badge">
-                        ${escapeHTML(property.type)}
+
+                    <div
+                        class="property-type-badge"
+                    >
+                        ${
+                            escapeHTML(
+                                property.type
+                            )
+                        }
                     </div>
 
-                    <div class="property-lock">
+
+                    <div
+                        class="property-lock"
+                    >
                         🔒
                     </div>
 
                 </div>
 
 
-                <div class="property-info">
+                <div
+                    class="property-info"
+                >
 
                     <h3>
-                        ${escapeHTML(property.title)}
+                        ${
+                            escapeHTML(
+                                property.title
+                            )
+                        }
                     </h3>
 
-                    <div class="property-location">
+
+                    <div
+                        class="property-location"
+                    >
                         📍
-                        ${escapeHTML(property.location)}
+                        ${
+                            escapeHTML(
+                                property.location
+                            )
+                        }
                     </div>
 
 
-                    <div class="property-bottom">
+                    <div
+                        class="property-bottom"
+                    >
 
-                        <div class="property-price">
-                            ₹${Number(property.price).toLocaleString("en-IN")}
-                            <small>/month</small>
+                        <div
+                            class="property-price"
+                        >
+
+                            ₹${
+                                Number(
+                                    property.price
+                                ).toLocaleString(
+                                    "en-IN"
+                                )
+                            }
+
+                            <small>
+                                /month
+                            </small>
+
                         </div>
 
 
@@ -821,10 +1377,13 @@ function renderProperties(list = properties) {
                     </div>
 
                 </div>
+
             `;
 
 
-            grid.appendChild(card);
+            grid.appendChild(
+                card
+            );
 
         }
     );
@@ -840,55 +1399,82 @@ function filterProperties() {
 
     const location =
         document
-            .getElementById("searchLocation")
-            .value
+            .getElementById(
+                "searchLocation"
+            )
+            ?.value
             .toLowerCase()
-            .trim();
+            .trim() || "";
 
 
     const type =
         document
-            .getElementById("searchType")
-            .value;
+            .getElementById(
+                "searchType"
+            )
+            ?.value || "";
 
 
     const maxPrice =
         document
-            .getElementById("searchPrice")
-            .value;
+            .getElementById(
+                "searchPrice"
+            )
+            ?.value || "";
 
 
     const filtered =
-        properties.filter(property => {
+        properties.filter(
+            property => {
 
-            const matchesLocation =
-                !location ||
-                property.location
-                    .toLowerCase()
-                    .includes(location) ||
-                property.title
-                    .toLowerCase()
-                    .includes(location);
+                const matchesLocation =
 
+                    !location ||
 
-            const matchesType =
-                !type ||
-                property.type === type;
+                    property.location
+                        .toLowerCase()
+                        .includes(
+                            location
+                        ) ||
 
-
-            const matchesPrice =
-                !maxPrice ||
-                Number(property.price)
-                    <= Number(maxPrice);
+                    property.title
+                        .toLowerCase()
+                        .includes(
+                            location
+                        );
 
 
-            return (
-                matchesLocation &&
-                matchesType &&
-                matchesPrice
-            );
+                const matchesType =
 
-        });
+                    !type ||
+
+                    property.type ===
+                    type;
+
+
+                const matchesPrice =
+
+                    !maxPrice ||
+
+                    Number(
+                        property.price
+                    ) <= Number(
+                        maxPrice
+                    );
+
+
+                return (
+
+                    matchesLocation &&
+
+                    matchesType &&
+
+                    matchesPrice
+
+                );
+
+            }
+        );
 
 
     renderProperties(
@@ -911,41 +1497,77 @@ function openProperty(id) {
         );
 
 
-    if (!selectedProperty) return;
+    if (!selectedProperty) {
+
+        return;
+
+    }
 
 
-    document.getElementById(
-        "modalType"
-    ).textContent =
-        selectedProperty.type;
+    const setText =
+        (
+            elementId,
+            value
+        ) => {
+
+            const element =
+                document.getElementById(
+                    elementId
+                );
 
 
-    document.getElementById(
-        "modalType2"
-    ).textContent =
-        selectedProperty.type;
+            if (element) {
+
+                element.textContent =
+                    value;
+
+            }
+
+        };
 
 
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
-        selectedProperty.title;
+    setText(
+        "modalType",
+        selectedProperty.type
+    );
 
 
-    document.getElementById(
-        "modalPrice"
-    ).textContent =
-        `₹${Number(
-            selectedProperty.price
-        ).toLocaleString("en-IN")}/month`;
+    setText(
+        "modalType2",
+        selectedProperty.type
+    );
 
 
-    document.getElementById(
-        "modalAddress"
-    ).textContent =
+    setText(
+        "modalTitle",
+        selectedProperty.title
+    );
+
+
+    setText(
+
+        "modalPrice",
+
+        `₹${
+            Number(
+                selectedProperty.price
+            ).toLocaleString(
+                "en-IN"
+            )
+        }/month`
+
+    );
+
+
+    setText(
+
+        "modalAddress",
+
         isPremium
             ? selectedProperty.address
-            : "Premium access required";
+            : "Premium access required"
+
+    );
 
 
     const images =
@@ -954,23 +1576,39 @@ function openProperty(id) {
         );
 
 
-    images.innerHTML = "";
+    if (images) {
+
+        images.innerHTML = "";
 
 
-    selectedProperty.images
-        .forEach(image => {
+        (
+            selectedProperty.images ||
+            []
+        ).forEach(
+            image => {
 
-            const img =
-                document.createElement("img");
+                const img =
+                    document.createElement(
+                        "img"
+                    );
 
-            img.src = image;
 
-            img.alt =
-                selectedProperty.title;
+                img.src =
+                    image;
 
-            images.appendChild(img);
 
-        });
+                img.alt =
+                    selectedProperty.title;
+
+
+                images.appendChild(
+                    img
+                );
+
+            }
+        );
+
+    }
 
 
     const modal =
@@ -979,7 +1617,13 @@ function openProperty(id) {
         );
 
 
-    modal.classList.add("show");
+    if (modal) {
+
+        modal.classList.add(
+            "show"
+        );
+
+    }
 
 
     updateContactSection();
@@ -999,8 +1643,13 @@ function updateContactSection() {
         );
 
 
-    if (!box || !selectedProperty) {
+    if (
+        !box ||
+        !selectedProperty
+    ) {
+
         return;
+
     }
 
 
@@ -1008,49 +1657,105 @@ function updateContactSection() {
 
         box.innerHTML = `
 
-            <div class="premium-lock">
+            <div
+                class="premium-lock"
+            >
                 ☎️
             </div>
+
 
             <h3>
                 Owner Contact
             </h3>
 
+
             <p>
                 You have Premium access.
             </p>
 
-            <div style="
-                margin:15px 0;
-                padding:15px;
-                background:white;
-                border-radius:13px;
-            ">
+
+            <div
+                style="
+                    margin:15px 0;
+                    padding:15px;
+                    background:white;
+                    border-radius:13px;
+                "
+            >
 
                 <strong>
-                    📞 ${escapeHTML(selectedProperty.phone)}
+
+                    📞
+                    ${
+                        escapeHTML(
+                            selectedProperty.phone
+                        )
+                    }
+
                 </strong>
+
 
                 <br>
 
+
                 <small>
-                    📍 ${escapeHTML(selectedProperty.address)}
+
+                    📍
+                    ${
+                        escapeHTML(
+                            selectedProperty.address
+                        )
+                    }
+
                 </small>
 
             </div>
 
+
             <a
-                href="tel:${escapeHTML(selectedProperty.phone)}"
+
+                href="tel:${
+                    escapeHTML(
+                        selectedProperty.phone
+                    )
+                }"
+
                 class="primary-btn"
+
                 style="
                     display:flex;
                     text-decoration:none;
                     max-width:300px;
                     margin:auto;
                 "
+
             >
+
                 📞 Call Owner
+
             </a>
+
+        `;
+
+    } else {
+
+        box.innerHTML = `
+
+            <div
+                class="premium-lock"
+            >
+                🔒
+            </div>
+
+
+            <h3>
+                Owner Contact
+            </h3>
+
+
+            <p>
+                Upgrade to Premium to view owner contact details.
+            </p>
 
         `;
 
@@ -1065,9 +1770,20 @@ function updateContactSection() {
 
 function closePropertyModal() {
 
-    document
-        .getElementById("propertyModal")
-        .classList.remove("show");
+    const modal =
+        document.getElementById(
+            "propertyModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "show"
+        );
+
+    }
+
 
     selectedProperty = null;
 
@@ -1080,18 +1796,38 @@ function closePropertyModal() {
 
 function showPremium() {
 
-    document
-        .getElementById("premiumModal")
-        .classList.add("show");
+    const modal =
+        document.getElementById(
+            "premiumModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            "show"
+        );
+
+    }
 
 }
 
 
 function closePremium() {
 
-    document
-        .getElementById("premiumModal")
-        .classList.remove("show");
+    const modal =
+        document.getElementById(
+            "premiumModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "show"
+        );
+
+    }
 
 }
 
@@ -1102,32 +1838,44 @@ function closePremium() {
 
 function submitPayment() {
 
+    const getValue =
+        id => {
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            return element
+                ? element.value.trim()
+                : "";
+
+        };
+
+
     const name =
-        document
-            .getElementById("paymentName")
-            .value
-            .trim();
+        getValue(
+            "paymentName"
+        );
 
 
     const upi =
-        document
-            .getElementById("paymentUpi")
-            .value
-            .trim();
+        getValue(
+            "paymentUpi"
+        );
 
 
     const mobile =
-        document
-            .getElementById("paymentMobile")
-            .value
-            .trim();
+        getValue(
+            "paymentMobile"
+        );
 
 
     const txn =
-        document
-            .getElementById("paymentTxn")
-            .value
-            .trim();
+        getValue(
+            "paymentTxn"
+        );
 
 
     if (
@@ -1142,35 +1890,40 @@ function submitPayment() {
         );
 
         return;
+
     }
 
 
-    if (mobile.length !== 10) {
+    if (
+        mobile.length !== 10
+    ) {
 
         showToast(
             "Please enter a valid 10-digit mobile number."
         );
 
         return;
+
     }
 
 
     /*
-        DEMO ONLY
-
-        Real version should send this data
-        to your backend/database and verify
-        the payment before activating premium.
+       Existing demo payment behavior
+       is retained for now.
     */
 
-
     localStorage.setItem(
+
         "bachroom_payment_request",
+
         JSON.stringify({
 
             name,
+
             upi,
+
             mobile,
+
             txn,
 
             email:
@@ -1182,30 +1935,23 @@ function submitPayment() {
                 new Date().toISOString()
 
         })
+
     );
 
-
-    /*
-        DEMO AUTO UNLOCK
-
-        IMPORTANT:
-        Remove this in production.
-
-        Real system should unlock only after
-        payment verification.
-    */
 
     isPremium = true;
 
 
     localStorage.setItem(
+
         "bachroom_premium",
+
         "true"
+
     );
 
 
     updatePremiumUI();
-
 
     closePremium();
 
@@ -1216,7 +1962,9 @@ function submitPayment() {
 
 
     if (selectedProperty) {
+
         updateContactSection();
+
     }
 
 }
@@ -1242,8 +1990,10 @@ function updatePremiumUI() {
         status.textContent =
             "⭐ PREMIUM ACTIVE";
 
+
         status.style.background =
             "#e2fff3";
+
 
         status.style.color =
             "#00895a";
@@ -1253,8 +2003,10 @@ function updatePremiumUI() {
         status.textContent =
             "FREE PLAN";
 
+
         status.style.background =
             "#fff3d5";
+
 
         status.style.color =
             "#a26a00";
@@ -1326,8 +2078,11 @@ function showCustomerPreview() {
 function scrollToTop() {
 
     window.scrollTo({
+
         top: 0,
+
         behavior: "smooth"
+
     });
 
 }
@@ -1343,7 +2098,9 @@ let toastTimer;
 function showToast(message) {
 
     const toast =
-        document.getElementById("toast");
+        document.getElementById(
+            "toast"
+        );
 
 
     if (!toast) return;
@@ -1353,18 +2110,30 @@ function showToast(message) {
         message;
 
 
-    toast.classList.add("show");
+    toast.classList.add(
+        "show"
+    );
 
 
-    clearTimeout(toastTimer);
+    clearTimeout(
+        toastTimer
+    );
 
 
     toastTimer =
-        setTimeout(() => {
+        setTimeout(
 
-            toast.classList.remove("show");
+            () => {
 
-        }, 3000);
+                toast.classList.remove(
+                    "show"
+                );
+
+            },
+
+            3000
+
+        );
 
 }
 
@@ -1375,8 +2144,10 @@ function showToast(message) {
 
 function escapeHTML(value) {
 
-    if (value === undefined ||
-        value === null) {
+    if (
+        value === undefined ||
+        value === null
+    ) {
 
         return "";
 
@@ -1384,11 +2155,31 @@ function escapeHTML(value) {
 
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
@@ -1398,10 +2189,15 @@ function escapeHTML(value) {
 ========================================== */
 
 document.addEventListener(
+
     "keydown",
+
     function(event) {
 
-        if (event.key === "Escape") {
+        if (
+            event.key ===
+            "Escape"
+        ) {
 
             closePropertyModal();
 
@@ -1410,6 +2206,7 @@ document.addEventListener(
         }
 
     }
+
 );
 
 
@@ -1417,20 +2214,14 @@ document.addEventListener(
    DEMO DATA
 ========================================== */
 
-/*
-    Uncomment this function once if you want
-    sample properties to appear automatically.
-
-    IMPORTANT:
-    It creates demo properties without photos.
-*/
-
 function addDemoProperties() {
 
     const demoProperties = [
 
         {
-            id: Date.now() + 1,
+
+            id:
+                Date.now() + 1,
 
             title:
                 "Affordable Student Room near Lalpur",
@@ -1450,15 +2241,19 @@ function addDemoProperties() {
             phone:
                 "9876543210",
 
-            images: [],
+            images:
+                [],
 
             createdAt:
                 new Date().toISOString()
+
         },
 
 
         {
-            id: Date.now() + 2,
+
+            id:
+                Date.now() + 2,
 
             title:
                 "Spacious 2BHK Family Flat",
@@ -1478,25 +2273,34 @@ function addDemoProperties() {
             phone:
                 "9876543211",
 
-            images: [],
+            images:
+                [],
 
             createdAt:
                 new Date().toISOString()
+
         }
 
     ];
 
 
-    properties =
-        [
-            ...demoProperties,
-            ...properties
-        ];
+    properties = [
+
+        ...demoProperties,
+
+        ...properties
+
+    ];
 
 
     localStorage.setItem(
+
         "bachroom_properties",
-        JSON.stringify(properties)
+
+        JSON.stringify(
+            properties
+        )
+
     );
 
 
