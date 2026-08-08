@@ -4,156 +4,122 @@
    Made by Abhishek Mishra
 ========================================== */
 
-const ADMIN_PASSWORD = "Abhishek@299";
+
+/* ==========================================
+   CONFIGURATION
+========================================== */
 
 const BACKEND_URL =
     "https://bachroom-backend.onrender.com";
 
 
+/*
+   IMPORTANT:
+
+   This password is only frontend protection.
+   Real production admin authentication
+   should eventually be moved completely
+   to the backend.
+*/
+
+const ADMIN_PASSWORD =
+    "Abhishek@299";
+
+
 /* ==========================================
-   GLOBAL DATA
+   GLOBAL STATE
 ========================================== */
 
 let properties =
     JSON.parse(
-        localStorage.getItem("bachroom_properties")
+        localStorage.getItem(
+            "bachroom_properties"
+        )
     ) || [];
+
 
 let currentUser =
     JSON.parse(
-        localStorage.getItem("bachroom_user")
+        localStorage.getItem(
+            "bachroom_user"
+        )
     ) || null;
 
+
 let isPremium =
-    localStorage.getItem("bachroom_premium") === "true";
+    localStorage.getItem(
+        "bachroom_premium"
+    ) === "true";
+
 
 let selectedProperty = null;
+
 
 let uploadedImages = [];
 
 
-/* ==========================================
-   PAGE INITIALIZATION
-========================================== */
-
-window.addEventListener("load", () => {
-
-    setTimeout(() => {
-
-        const loader =
-            document.getElementById("loader");
-
-        if (loader) {
-            loader.classList.add("hide");
-        }
-
-    }, 900);
-
-
-    updatePropertyStats();
-
-    updatePremiumUI();
-
-    showStoredSession();
-
-    prepareGoogleLoginUI();
-
-    checkGoogleLogin();
-
-});
+let toastTimer;
 
 
 /* ==========================================
-   PREPARE GOOGLE LOGIN UI
+   INITIALIZATION
 ========================================== */
 
-function prepareGoogleLoginUI() {
+window.addEventListener(
+    "load",
+    function () {
 
-    const email =
-        document.getElementById(
-            "customerEmail"
-        );
+        setTimeout(
+            function () {
 
-    if (email) {
-
-        email.style.display = "none";
-
-        email.value = "";
-
-        email.removeAttribute(
-            "required"
-        );
-
-    }
-
-
-    document
-        .querySelectorAll(
-            "#customerLoginPage button"
-        )
-        .forEach(button => {
-
-            const text =
-                (
-                    button.innerText || ""
-                ).toLowerCase();
-
-
-            if (
-                text.includes(
-                    "continue with gmail"
-                ) ||
-                text.includes(
-                    "continue with google"
-                )
-            ) {
-
-                button.setAttribute(
-                    "onclick",
-                    "customerLogin()"
-                );
-
-
-                const spans =
-                    button.querySelectorAll(
-                        "span"
+                const loader =
+                    document.getElementById(
+                        "loader"
                     );
 
 
-                if (spans.length) {
+                if (loader) {
 
-                    spans[0].textContent =
-                        "Continue with Google";
-
-                } else {
-
-                    button.textContent =
-                        "Continue with Google →";
+                    loader.classList.add(
+                        "hide"
+                    );
 
                 }
 
-            }
+            },
+            900
+        );
 
-        });
 
-}
+        updatePropertyStats();
+
+        updatePremiumUI();
+
+        showStoredSession();
+
+        checkGoogleLogin();
+
+    }
+);
 
 
 /* ==========================================
-   PAGE SWITCH
+   PAGE CONTROL
 ========================================== */
 
 function hideAllPages() {
 
     document
         .querySelectorAll(".page")
-        .forEach(page => {
+        .forEach(
+            function (page) {
 
-            page.classList.remove(
-                "active-page"
-            );
+                page.classList.remove(
+                    "active-page"
+                );
 
-        });
+            }
+        );
 
 }
 
@@ -188,12 +154,14 @@ function showPage(id) {
 
 
 /* ==========================================
-   LOGIN PAGE
+   LOGIN NAVIGATION
 ========================================== */
 
 function goToLogin() {
 
-    showPage("loginPage");
+    showPage(
+        "loginPage"
+    );
 
 }
 
@@ -203,8 +171,6 @@ function showCustomerLogin() {
     showPage(
         "customerLoginPage"
     );
-
-    prepareGoogleLoginUI();
 
 }
 
@@ -216,21 +182,24 @@ function showAdminLogin() {
     );
 
 
-    setTimeout(() => {
+    setTimeout(
+        function () {
 
-        const password =
-            document.getElementById(
-                "adminPassword"
-            );
+            const password =
+                document.getElementById(
+                    "adminPassword"
+                );
 
 
-        if (password) {
+            if (password) {
 
-            password.focus();
+                password.focus();
 
-        }
+            }
 
-    }, 300);
+        },
+        250
+    );
 
 }
 
@@ -239,18 +208,21 @@ function showAdminLogin() {
    REAL GOOGLE LOGIN
 ========================================== */
 
-/*
-   IMPORTANT:
-
-   Old demo login has been removed.
-
-   The old system accepted any Gmail address.
-
-   Now clicking customerLogin()
-   redirects to the real Google OAuth backend.
-*/
-
 function customerLogin() {
+
+    /*
+       IMPORTANT:
+
+       There is NO Gmail input here.
+
+       User goes directly to Google.
+
+       Therefore:
+       abc@gmail.com
+       xyz@gmail.com
+
+       cannot be manually accepted.
+    */
 
     window.location.href =
         `${BACKEND_URL}/auth/google`;
@@ -259,8 +231,8 @@ function customerLogin() {
 
 
 /*
-   Compatibility with any HTML button
-   using onclick="googleLogin()"
+   Alias in case some old HTML
+   uses googleLogin()
 */
 
 function googleLogin() {
@@ -271,7 +243,7 @@ function googleLogin() {
 
 
 /* ==========================================
-   GOOGLE LOGIN CALLBACK
+   GOOGLE OAUTH CALLBACK
 ========================================== */
 
 async function checkGoogleLogin() {
@@ -287,22 +259,31 @@ async function checkGoogleLogin() {
 
 
     /*
-       Google authentication failed
+       Nothing to do on normal page load.
+    */
+
+    if (!login) {
+
+        return;
+
+    }
+
+
+    /*
+       Google authentication failed.
     */
 
     if (login === "failed") {
 
-        showPage("loginPage");
+        cleanLoginQuery();
 
-        showToast(
-            "Google login failed. Please try again."
+        showPage(
+            "loginPage"
         );
 
 
-        window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
+        showToast(
+            "Google login failed. Please try again."
         );
 
 
@@ -312,8 +293,7 @@ async function checkGoogleLogin() {
 
 
     /*
-       Nothing to check if this
-       is a normal page load
+       Google authentication succeeded.
     */
 
     if (login !== "success") {
@@ -327,7 +307,9 @@ async function checkGoogleLogin() {
 
         const response =
             await fetch(
+
                 `${BACKEND_URL}/api/me`,
+
                 {
 
                     method: "GET",
@@ -342,13 +324,14 @@ async function checkGoogleLogin() {
                     }
 
                 }
+
             );
 
 
         if (!response.ok) {
 
             throw new Error(
-                `Authentication request failed: ${response.status}`
+                "Authentication session not available."
             );
 
         }
@@ -364,19 +347,25 @@ async function checkGoogleLogin() {
         ) {
 
             throw new Error(
-                "Google session was not authenticated."
+                "User is not authenticated."
             );
 
         }
 
 
-        /*
-           Save REAL Google user
-        */
-
         currentUser = {
 
-            ...data.user,
+            id:
+                data.user.id || "",
+
+            name:
+                data.user.name || "Google User",
+
+            email:
+                data.user.email || "",
+
+            photo:
+                data.user.photo || "",
 
             loginDate:
                 new Date().toISOString()
@@ -395,25 +384,8 @@ async function checkGoogleLogin() {
         );
 
 
-        /*
-           Remove ?login=success
-           from browser URL
-        */
+        cleanLoginQuery();
 
-        window.history.replaceState(
-
-            {},
-
-            document.title,
-
-            window.location.pathname
-
-        );
-
-
-        /*
-           Open customer dashboard
-        */
 
         showCustomerDashboard();
 
@@ -421,8 +393,7 @@ async function checkGoogleLogin() {
         showToast(
 
             `Welcome, ${
-                currentUser.name ||
-                currentUser.email
+                currentUser.name
             }!`
 
         );
@@ -431,33 +402,131 @@ async function checkGoogleLogin() {
     } catch (error) {
 
         console.error(
-
-            "Google login verification failed:",
-
+            "Google OAuth verification error:",
             error
-
         );
 
 
-        window.history.replaceState(
+        cleanLoginQuery();
 
-            {},
 
-            document.title,
+        currentUser = null;
 
-            window.location.pathname
 
+        localStorage.removeItem(
+            "bachroom_user"
         );
 
 
-        showPage("loginPage");
+        showPage(
+            "loginPage"
+        );
 
 
         showToast(
-
-            "Google login verification failed. Please try again."
-
+            "Google session could not be verified. Please try again."
         );
+
+    }
+
+}
+
+
+function cleanLoginQuery() {
+
+    window.history.replaceState(
+
+        {},
+
+        document.title,
+
+        window.location.pathname
+
+    );
+
+}
+
+
+/* ==========================================
+   STORED SESSION
+========================================== */
+
+function showStoredSession() {
+
+    /*
+       We do NOT trust localStorage alone
+       as proof of Google authentication.
+
+       The backend session is the real source
+       of authentication.
+
+       Therefore dashboard is opened only
+       after /api/me verification.
+    */
+
+}
+
+
+/* ==========================================
+   CUSTOMER DASHBOARD
+========================================== */
+
+function showCustomerDashboard() {
+
+    if (!currentUser) {
+
+        showPage(
+            "loginPage"
+        );
+
+        return;
+
+    }
+
+
+    showPage(
+        "customerDashboard"
+    );
+
+
+    updateUserGreeting();
+
+    renderProperties();
+
+    updatePropertyStats();
+
+    updatePremiumUI();
+
+}
+
+
+function updateUserGreeting() {
+
+    const element =
+        document.getElementById(
+            "userGreeting"
+        );
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    if (
+        currentUser &&
+        currentUser.name
+    ) {
+
+        element.textContent =
+            `Hi, ${currentUser.name}`;
+
+    } else {
+
+        element.textContent =
+            "";
 
     }
 
@@ -513,80 +582,26 @@ function adminLogin() {
     );
 
 
+    if (input) {
+
+        input.value = "";
+
+    }
+
+
     showToast(
         "Admin login successful."
     );
 
 
-    setTimeout(() => {
+    setTimeout(
+        function () {
 
-        showAdminDashboard();
+            showAdminDashboard();
 
-    }, 400);
-
-}
-
-
-/* ==========================================
-   PASSWORD VISIBILITY
-========================================== */
-
-function togglePassword() {
-
-    const input =
-        document.getElementById(
-            "adminPassword"
-        );
-
-
-    if (!input) return;
-
-
-    if (
-        input.type ===
-        "password"
-    ) {
-
-        input.type = "text";
-
-    } else {
-
-        input.type = "password";
-
-    }
-
-}
-
-
-/* ==========================================
-   SESSION
-========================================== */
-
-function showStoredSession() {
-
-    /*
-       Do not automatically force
-       dashboard on page load.
-
-       Real Google session is checked
-       only after ?login=success.
-    */
-
-}
-
-
-function showCustomerDashboard() {
-
-    showPage(
-        "customerDashboard"
+        },
+        400
     );
-
-
-    renderProperties();
-
-    updatePropertyStats();
-
-    updatePremiumUI();
 
 }
 
@@ -605,11 +620,41 @@ function showAdminDashboard() {
 }
 
 
+function togglePassword() {
+
+    const input =
+        document.getElementById(
+            "adminPassword"
+        );
+
+
+    if (!input) {
+
+        return;
+
+    }
+
+
+    if (
+        input.type === "password"
+    ) {
+
+        input.type = "text";
+
+    } else {
+
+        input.type = "password";
+
+    }
+
+}
+
+
 /* ==========================================
    LOGOUT
 ========================================== */
 
-function logout() {
+async function logout() {
 
     currentUser = null;
 
@@ -624,24 +669,56 @@ function logout() {
     );
 
 
+    /*
+       Destroy backend Google session.
+    */
+
+    try {
+
+        await fetch(
+
+            `${BACKEND_URL}/auth/logout`,
+
+            {
+
+                credentials:
+                    "include"
+
+            }
+
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Backend logout request failed:",
+            error
+        );
+
+    }
+
+
     showToast(
         "Logged out successfully."
     );
 
 
-    /*
-       Also logout from real
-       Google session on backend.
-    */
+    setTimeout(
+        function () {
 
-    window.location.href =
-        `${BACKEND_URL}/auth/logout`;
+            showPage(
+                "loginPage"
+            );
+
+        },
+        300
+    );
 
 }
 
 
 /* ==========================================
-   ADMIN PHOTO PREVIEW
+   PROPERTY UPLOAD
 ========================================== */
 
 function previewPhotos() {
@@ -670,10 +747,16 @@ function previewPhotos() {
 
     uploadedImages = [];
 
+    preview.innerHTML = "";
 
-    if (!input.files.length) {
 
-        preview.innerHTML = "";
+    if (
+        input.files.length < 2
+    ) {
+
+        showToast(
+            "Please select at least 2 photos."
+        );
 
         return;
 
@@ -681,103 +764,164 @@ function previewPhotos() {
 
 
     if (
-        input.files.length < 2 ||
         input.files.length > 10
     ) {
 
         showToast(
-            "Please select minimum 2 and maximum 10 photos."
+            "Maximum 10 photos are allowed."
         );
 
-
         input.value = "";
-
-        preview.innerHTML = "";
 
         return;
 
     }
 
 
-    preview.innerHTML = "";
-
-
     Array
         .from(input.files)
-        .forEach(file => {
+        .forEach(
+            function (file) {
 
-            const reader =
-                new FileReader();
+                if (
+                    !file.type.startsWith(
+                        "image/"
+                    )
+                ) {
+
+                    return;
+
+                }
 
 
-            reader.onload =
-                function(event) {
-
-                    uploadedImages.push(
-                        event.target.result
-                    );
+                const reader =
+                    new FileReader();
 
 
-                    const div =
-                        document.createElement(
-                            "div"
+                reader.onload =
+                    function (event) {
+
+                        uploadedImages.push(
+                            event.target.result
                         );
 
 
-                    div.className =
-                        "preview-image";
+                        const div =
+                            document.createElement(
+                                "div"
+                            );
 
 
-                    div.innerHTML = `
-
-                        <img
-                            src="${event.target.result}"
-                            alt="Property Photo"
-                        >
-
-                    `;
+                        div.className =
+                            "preview-image";
 
 
-                    preview.appendChild(
-                        div
-                    );
+                        const img =
+                            document.createElement(
+                                "img"
+                            );
 
-                };
+
+                        img.src =
+                            event.target.result;
 
 
-            reader.readAsDataURL(
-                file
-            );
+                        img.alt =
+                            "Property photo";
 
-        });
+
+                        div.appendChild(
+                            img
+                        );
+
+
+                        preview.appendChild(
+                            div
+                        );
+
+                    };
+
+
+                reader.readAsDataURL(
+                    file
+                );
+
+            }
+        );
 
 }
 
-
-/* ==========================================
-   UPLOAD PROPERTY
-========================================== */
 
 function uploadProperty(event) {
 
     event.preventDefault();
 
 
-    const input =
+    const title =
+        getInputValue(
+            "propertyTitle"
+        );
+
+
+    const type =
+        getInputValue(
+            "propertyType"
+        );
+
+
+    const price =
+        Number(
+            getInputValue(
+                "propertyPrice"
+            )
+        );
+
+
+    const location =
+        getInputValue(
+            "propertyLocation"
+        );
+
+
+    const address =
+        getInputValue(
+            "propertyAddress"
+        );
+
+
+    const phone =
+        getInputValue(
+            "propertyPhone"
+        );
+
+
+    const photos =
         document.getElementById(
             "propertyPhotos"
         );
 
 
-    const files =
-        input
-            ? input.files
-            : [];
+    if (
+        !title ||
+        !type ||
+        !price ||
+        !location ||
+        !address ||
+        !phone
+    ) {
+
+        showToast(
+            "Please fill all required fields."
+        );
+
+        return;
+
+    }
 
 
     if (
-        !files ||
-        files.length < 2
+        !photos ||
+        photos.files.length < 2
     ) {
 
         showToast(
@@ -790,7 +934,7 @@ function uploadProperty(event) {
 
 
     if (
-        files.length > 10
+        photos.files.length > 10
     ) {
 
         showToast(
@@ -807,79 +951,7 @@ function uploadProperty(event) {
     ) {
 
         showToast(
-            "Photos are still processing. Please wait."
-        );
-
-        return;
-
-    }
-
-
-    const getValue =
-        id => {
-
-            const element =
-                document.getElementById(
-                    id
-                );
-
-
-            return element
-                ? element.value.trim()
-                : "";
-
-        };
-
-
-    const title =
-        getValue(
-            "propertyTitle"
-        );
-
-
-    const type =
-        document.getElementById(
-            "propertyType"
-        )?.value || "";
-
-
-    const price =
-        Number(
-            document.getElementById(
-                "propertyPrice"
-            )?.value || 0
-        );
-
-
-    const location =
-        getValue(
-            "propertyLocation"
-        );
-
-
-    const address =
-        getValue(
-            "propertyAddress"
-        );
-
-
-    const phone =
-        getValue(
-            "propertyPhone"
-        );
-
-
-    if (
-        !title ||
-        !type ||
-        !price ||
-        !location ||
-        !address ||
-        !phone
-    ) {
-
-        showToast(
-            "Please fill all required fields."
+            "Please wait for photos to finish loading."
         );
 
         return;
@@ -905,7 +977,7 @@ function uploadProperty(event) {
         phone,
 
         images:
-            uploadedImages,
+            [...uploadedImages],
 
         createdAt:
             new Date().toISOString()
@@ -918,27 +990,20 @@ function uploadProperty(event) {
     );
 
 
-    localStorage.setItem(
-
-        "bachroom_properties",
-
-        JSON.stringify(
-            properties
-        )
-
-    );
+    saveProperties();
 
 
-    showToast(
-        "Rental property published successfully!"
-    );
-
-
-    document
-        .getElementById(
+    const form =
+        document.getElementById(
             "propertyForm"
-        )
-        ?.reset();
+        );
+
+
+    if (form) {
+
+        form.reset();
+
+    }
 
 
     const preview =
@@ -963,6 +1028,57 @@ function uploadProperty(event) {
 
     updatePropertyStats();
 
+
+    showToast(
+        "Rental property published successfully!"
+    );
+
+}
+
+
+/* ==========================================
+   PROPERTY STORAGE
+========================================== */
+
+function saveProperties() {
+
+    try {
+
+        localStorage.setItem(
+
+            "bachroom_properties",
+
+            JSON.stringify(
+                properties
+            )
+
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        showToast(
+            "Storage limit reached. Try smaller photos."
+        );
+
+    }
+
+}
+
+
+function getInputValue(id) {
+
+    const element =
+        document.getElementById(id);
+
+
+    return element
+        ? element.value.trim()
+        : "";
+
 }
 
 
@@ -978,29 +1094,30 @@ function renderAdminProperties() {
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     if (!properties.length) {
 
         container.innerHTML = `
 
-            <div
-                class="empty-state"
-                style="
-                    display:block;
-                    padding:40px;
-                "
-            >
+            <div class="empty-state"
+                 style="display:block;">
 
-                <div>🏠</div>
+                <div>
+                    🏠
+                </div>
 
                 <h3>
                     No properties uploaded yet
                 </h3>
 
                 <p>
-                    Upload your first rental property above.
+                    Publish your first rental property above.
                 </p>
 
             </div>
@@ -1016,7 +1133,7 @@ function renderAdminProperties() {
 
 
     properties.forEach(
-        property => {
+        function (property) {
 
             const item =
                 document.createElement(
@@ -1028,19 +1145,35 @@ function renderAdminProperties() {
                 "admin-property-item";
 
 
+            const image =
+                property.images &&
+                property.images.length
+                    ? property.images[0]
+                    : "";
+
+
             item.innerHTML = `
 
-                <img
-                    src="${
-                        property.images?.[0] ||
-                        ""
-                    }"
-                    alt="${
-                        escapeHTML(
-                            property.title
-                        )
-                    }"
-                >
+                ${
+                    image
+
+                    ?
+
+                    `
+                    <img
+                        src="${image}"
+                        alt="${escapeHTML(property.title)}"
+                    >
+                    `
+
+                    :
+
+                    `
+                    <div class="admin-property-placeholder">
+                        🏠
+                    </div>
+                    `
+                }
 
 
                 <div
@@ -1048,37 +1181,25 @@ function renderAdminProperties() {
                 >
 
                     <strong>
-
-                        ${
-                            escapeHTML(
-                                property.title
-                            )
-                        }
-
+                        ${escapeHTML(
+                            property.title
+                        )}
                     </strong>
 
-
                     <span>
-
-                        ${
-                            escapeHTML(
-                                property.location
-                            )
-                        }
-
-                        • ₹${property.price}/month
-
+                        ${escapeHTML(
+                            property.location
+                        )}
+                        • ₹${Number(
+                            property.price
+                        ).toLocaleString("en-IN")}
+                        /month
                     </span>
 
-
                     <span>
-
-                        ${
-                            escapeHTML(
-                                property.type
-                            )
-                        }
-
+                        ${escapeHTML(
+                            property.type
+                        )}
                     </span>
 
                 </div>
@@ -1087,7 +1208,7 @@ function renderAdminProperties() {
                 <button
                     class="delete-btn"
                     onclick="deleteProperty(${property.id})"
-                    title="Delete property"
+                    type="button"
                 >
                     🗑
                 </button>
@@ -1105,19 +1226,13 @@ function renderAdminProperties() {
 }
 
 
-/* ==========================================
-   DELETE PROPERTY
-========================================== */
-
 function deleteProperty(id) {
 
-    const confirmDelete =
-        confirm(
+    if (
+        !confirm(
             "Delete this rental property?"
-        );
-
-
-    if (!confirmDelete) {
+        )
+    ) {
 
         return;
 
@@ -1126,22 +1241,15 @@ function deleteProperty(id) {
 
     properties =
         properties.filter(
+            function (property) {
 
-            property =>
-                property.id !== id
+                return property.id !== id;
 
+            }
         );
 
 
-    localStorage.setItem(
-
-        "bachroom_properties",
-
-        JSON.stringify(
-            properties
-        )
-
-    );
+    saveProperties();
 
 
     renderAdminProperties();
@@ -1159,7 +1267,7 @@ function deleteProperty(id) {
 
 
 /* ==========================================
-   CUSTOMER PROPERTY RENDER
+   CUSTOMER PROPERTIES
 ========================================== */
 
 function renderProperties(
@@ -1178,7 +1286,17 @@ function renderProperties(
         );
 
 
-    if (!grid) return;
+    const count =
+        document.getElementById(
+            "resultCount"
+        );
+
+
+    if (!grid) {
+
+        return;
+
+    }
 
 
     grid.innerHTML = "";
@@ -1194,15 +1312,9 @@ function renderProperties(
         }
 
 
-        const resultCount =
-            document.getElementById(
-                "resultCount"
-            );
+        if (count) {
 
-
-        if (resultCount) {
-
-            resultCount.textContent =
+            count.textContent =
                 "0 properties";
 
         }
@@ -1221,22 +1333,16 @@ function renderProperties(
     }
 
 
-    const resultCount =
-        document.getElementById(
-            "resultCount"
-        );
+    if (count) {
 
-
-    if (resultCount) {
-
-        resultCount.textContent =
+        count.textContent =
             `${list.length} properties`;
 
     }
 
 
     list.forEach(
-        (property, index) => {
+        function (property, index) {
 
             const card =
                 document.createElement(
@@ -1249,10 +1355,10 @@ function renderProperties(
 
 
             card.style.animationDelay =
-                `${index * 0.05}s`;
+                `${index * .05}s`;
 
 
-            const firstImage =
+            const image =
                 property.images &&
                 property.images.length
                     ? property.images[0]
@@ -1261,23 +1367,19 @@ function renderProperties(
 
             card.innerHTML = `
 
-                <div
-                    class="property-image"
-                >
+                <div class="property-image">
 
                     ${
-                        firstImage
+                        image
 
                         ?
 
                         `
                         <img
-                            src="${firstImage}"
-                            alt="${
-                                escapeHTML(
-                                    property.title
-                                )
-                            }"
+                            src="${image}"
+                            alt="${escapeHTML(
+                                property.title
+                            )}"
                         >
                         `
 
@@ -1299,66 +1401,49 @@ function renderProperties(
                     }
 
 
-                    <div
-                        class="property-type-badge"
-                    >
-                        ${
-                            escapeHTML(
-                                property.type
-                            )
-                        }
+                    <div class="property-type-badge">
+
+                        ${escapeHTML(
+                            property.type
+                        )}
+
                     </div>
 
 
-                    <div
-                        class="property-lock"
-                    >
+                    <div class="property-lock">
                         🔒
                     </div>
 
                 </div>
 
 
-                <div
-                    class="property-info"
-                >
+                <div class="property-info">
 
                     <h3>
-                        ${
-                            escapeHTML(
-                                property.title
-                            )
-                        }
+                        ${escapeHTML(
+                            property.title
+                        )}
                     </h3>
 
 
-                    <div
-                        class="property-location"
-                    >
+                    <div class="property-location">
+
                         📍
-                        ${
-                            escapeHTML(
-                                property.location
-                            )
-                        }
+
+                        ${escapeHTML(
+                            property.location
+                        )}
+
                     </div>
 
 
-                    <div
-                        class="property-bottom"
-                    >
+                    <div class="property-bottom">
 
-                        <div
-                            class="property-price"
-                        >
+                        <div class="property-price">
 
-                            ₹${
-                                Number(
-                                    property.price
-                                ).toLocaleString(
-                                    "en-IN"
-                                )
-                            }
+                            ₹${Number(
+                                property.price
+                            ).toLocaleString("en-IN")}
 
                             <small>
                                 /month
@@ -1370,6 +1455,7 @@ function renderProperties(
                         <button
                             class="view-btn"
                             onclick="openProperty(${property.id})"
+                            type="button"
                         >
                             View →
                         </button>
@@ -1398,58 +1484,58 @@ function renderProperties(
 function filterProperties() {
 
     const location =
-        document
-            .getElementById(
-                "searchLocation"
-            )
-            ?.value
-            .toLowerCase()
-            .trim() || "";
+        getInputValue(
+            "searchLocation"
+        )
+        .toLowerCase();
 
 
     const type =
-        document
-            .getElementById(
-                "searchType"
-            )
-            ?.value || "";
+        getInputValue(
+            "searchType"
+        );
 
 
     const maxPrice =
-        document
-            .getElementById(
-                "searchPrice"
-            )
-            ?.value || "";
+        getInputValue(
+            "searchPrice"
+        );
 
 
     const filtered =
         properties.filter(
-            property => {
+            function (property) {
+
+                const propertyLocation =
+                    String(
+                        property.location || ""
+                    ).toLowerCase();
+
+
+                const propertyTitle =
+                    String(
+                        property.title || ""
+                    ).toLowerCase();
+
 
                 const matchesLocation =
 
                     !location ||
 
-                    property.location
-                        .toLowerCase()
-                        .includes(
-                            location
-                        ) ||
+                    propertyLocation.includes(
+                        location
+                    ) ||
 
-                    property.title
-                        .toLowerCase()
-                        .includes(
-                            location
-                        );
+                    propertyTitle.includes(
+                        location
+                    );
 
 
                 const matchesType =
 
                     !type ||
 
-                    property.type ===
-                    type;
+                    property.type === type;
 
 
                 const matchesPrice =
@@ -1492,8 +1578,11 @@ function openProperty(id) {
 
     selectedProperty =
         properties.find(
-            property =>
-                property.id === id
+            function (property) {
+
+                return property.id === id;
+
+            }
         );
 
 
@@ -1502,28 +1591,6 @@ function openProperty(id) {
         return;
 
     }
-
-
-    const setText =
-        (
-            elementId,
-            value
-        ) => {
-
-            const element =
-                document.getElementById(
-                    elementId
-                );
-
-
-            if (element) {
-
-                element.textContent =
-                    value;
-
-            }
-
-        };
 
 
     setText(
@@ -1548,13 +1615,9 @@ function openProperty(id) {
 
         "modalPrice",
 
-        `₹${
-            Number(
-                selectedProperty.price
-            ).toLocaleString(
-                "en-IN"
-            )
-        }/month`
+        `₹${Number(
+            selectedProperty.price
+        ).toLocaleString("en-IN")}/month`
 
     );
 
@@ -1582,10 +1645,10 @@ function openProperty(id) {
 
 
         (
-            selectedProperty.images ||
-            []
-        ).forEach(
-            image => {
+            selectedProperty.images || []
+        )
+        .forEach(
+            function (image) {
 
                 const img =
                     document.createElement(
@@ -1611,6 +1674,9 @@ function openProperty(id) {
     }
 
 
+    updateContactSection();
+
+
     const modal =
         document.getElementById(
             "propertyModal"
@@ -1625,15 +1691,8 @@ function openProperty(id) {
 
     }
 
-
-    updateContactSection();
-
 }
 
-
-/* ==========================================
-   CONTACT SECTION
-========================================== */
 
 function updateContactSection() {
 
@@ -1657,82 +1716,57 @@ function updateContactSection() {
 
         box.innerHTML = `
 
-            <div
-                class="premium-lock"
-            >
+            <div class="premium-lock">
                 ☎️
             </div>
-
 
             <h3>
                 Owner Contact
             </h3>
 
-
             <p>
-                You have Premium access.
+                Premium access active.
             </p>
-
 
             <div
                 style="
                     margin:15px 0;
                     padding:15px;
                     background:white;
-                    border-radius:13px;
+                    border-radius:14px;
+                    font-size:12px;
+                    line-height:2;
                 "
             >
 
+                📞
                 <strong>
-
-                    📞
-                    ${
-                        escapeHTML(
-                            selectedProperty.phone
-                        )
-                    }
-
+                    ${escapeHTML(
+                        selectedProperty.phone
+                    )}
                 </strong>
-
 
                 <br>
 
-
-                <small>
-
-                    📍
-                    ${
-                        escapeHTML(
-                            selectedProperty.address
-                        )
-                    }
-
-                </small>
+                📍
+                ${escapeHTML(
+                    selectedProperty.address
+                )}
 
             </div>
 
-
             <a
-
-                href="tel:${
-                    escapeHTML(
-                        selectedProperty.phone
-                    )
-                }"
-
+                href="tel:${escapeHTML(
+                    selectedProperty.phone
+                )}"
                 class="primary-btn"
-
                 style="
-                    display:flex;
                     text-decoration:none;
-                    max-width:300px;
-                    margin:auto;
+                    display:flex;
+                    justify-content:center;
                 "
-
             >
-
                 📞 Call Owner
-
             </a>
 
         `;
@@ -1741,20 +1775,17 @@ function updateContactSection() {
 
         box.innerHTML = `
 
-            <div
-                class="premium-lock"
-            >
+            <div class="premium-lock">
                 🔒
             </div>
-
 
             <h3>
                 Owner Contact
             </h3>
 
-
             <p>
-                Upgrade to Premium to view owner contact details.
+                Upgrade to Premium to view
+                owner contact details.
             </p>
 
         `;
@@ -1763,10 +1794,6 @@ function updateContactSection() {
 
 }
 
-
-/* ==========================================
-   CLOSE PROPERTY
-========================================== */
 
 function closePropertyModal() {
 
@@ -1833,47 +1860,31 @@ function closePremium() {
 
 
 /* ==========================================
-   PAYMENT SUBMISSION
+   PAYMENT FORM
 ========================================== */
 
 function submitPayment() {
 
-    const getValue =
-        id => {
-
-            const element =
-                document.getElementById(
-                    id
-                );
-
-
-            return element
-                ? element.value.trim()
-                : "";
-
-        };
-
-
     const name =
-        getValue(
+        getInputValue(
             "paymentName"
         );
 
 
     const upi =
-        getValue(
+        getInputValue(
             "paymentUpi"
         );
 
 
     const mobile =
-        getValue(
+        getInputValue(
             "paymentMobile"
         );
 
 
     const txn =
-        getValue(
+        getInputValue(
             "paymentTxn"
         );
 
@@ -1895,7 +1906,9 @@ function submitPayment() {
 
 
     if (
-        mobile.length !== 10
+        !/^[0-9]{10}$/.test(
+            mobile
+        )
     ) {
 
         showToast(
@@ -1908,8 +1921,12 @@ function submitPayment() {
 
 
     /*
-       Existing demo payment behavior
-       is retained for now.
+       Current version stores the request
+       locally.
+
+       For real payment verification and
+       receiving this data on your side,
+       backend/database integration is required.
     */
 
     localStorage.setItem(
@@ -1943,22 +1960,15 @@ function submitPayment() {
 
 
     localStorage.setItem(
-
         "bachroom_premium",
-
         "true"
-
     );
 
 
     updatePremiumUI();
 
+
     closePremium();
-
-
-    showToast(
-        "Demo Premium activated successfully!"
-    );
 
 
     if (selectedProperty) {
@@ -1966,6 +1976,11 @@ function submitPayment() {
         updateContactSection();
 
     }
+
+
+    showToast(
+        "Payment details submitted. Demo Premium activated."
+    );
 
 }
 
@@ -1982,7 +1997,11 @@ function updatePremiumUI() {
         );
 
 
-    if (!status) return;
+    if (!status) {
+
+        return;
+
+    }
 
 
     if (isPremium) {
@@ -2005,11 +2024,11 @@ function updatePremiumUI() {
 
 
         status.style.background =
-            "#fff3d5";
+            "#fff4d7";
 
 
         status.style.color =
-            "#a26a00";
+            "#9a6a00";
 
     }
 
@@ -2017,7 +2036,7 @@ function updatePremiumUI() {
 
 
 /* ==========================================
-   PROPERTY STATS
+   STATS
 ========================================== */
 
 function updatePropertyStats() {
@@ -2038,10 +2057,6 @@ function updatePropertyStats() {
 }
 
 
-/* ==========================================
-   ADMIN STATS
-========================================== */
-
 function updateAdminStats() {
 
     const total =
@@ -2061,10 +2076,35 @@ function updateAdminStats() {
 
 
 /* ==========================================
-   CUSTOMER PREVIEW
+   ADMIN PREVIEW
 ========================================== */
 
 function showCustomerPreview() {
+
+    /*
+       Admin can preview dashboard.
+
+       For preview, if no customer is logged in,
+       we temporarily show the dashboard.
+    */
+
+    if (!currentUser) {
+
+        showPage(
+            "customerDashboard"
+        );
+
+
+        renderProperties();
+
+        updatePropertyStats();
+
+        updatePremiumUI();
+
+        return;
+
+    }
+
 
     showCustomerDashboard();
 
@@ -2072,7 +2112,7 @@ function showCustomerPreview() {
 
 
 /* ==========================================
-   SCROLL TOP
+   SCROLL
 ========================================== */
 
 function scrollToTop() {
@@ -2089,64 +2129,33 @@ function scrollToTop() {
 
 
 /* ==========================================
-   TOAST
+   TEXT HELPERS
 ========================================== */
 
-let toastTimer;
+function setText(
+    id,
+    value
+) {
+
+    const element =
+        document.getElementById(id);
 
 
-function showToast(message) {
+    if (element) {
 
-    const toast =
-        document.getElementById(
-            "toast"
-        );
+        element.textContent =
+            value;
 
-
-    if (!toast) return;
-
-
-    toast.textContent =
-        message;
-
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        toastTimer
-    );
-
-
-    toastTimer =
-        setTimeout(
-
-            () => {
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            },
-
-            3000
-
-        );
+    }
 
 }
 
 
-/* ==========================================
-   HTML SECURITY
-========================================== */
-
 function escapeHTML(value) {
 
     if (
-        value === undefined ||
-        value === null
+        value === null ||
+        value === undefined
     ) {
 
         return "";
@@ -2185,14 +2194,64 @@ function escapeHTML(value) {
 
 
 /* ==========================================
-   ESC KEY
+   TOAST
+========================================== */
+
+function showToast(
+    message
+) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    if (!toast) {
+
+        return;
+
+    }
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    clearTimeout(
+        toastTimer
+    );
+
+
+    toastTimer =
+        setTimeout(
+            function () {
+
+                toast.classList.remove(
+                    "show"
+                );
+
+            },
+            3000
+        );
+
+}
+
+
+/* ==========================================
+   KEYBOARD
 ========================================== */
 
 document.addEventListener(
 
     "keydown",
 
-    function(event) {
+    function (event) {
 
         if (
             event.key ===
@@ -2211,99 +2270,34 @@ document.addEventListener(
 
 
 /* ==========================================
-   DEMO DATA
+   MODAL BACKDROP
 ========================================== */
 
-function addDemoProperties() {
+document.addEventListener(
 
-    const demoProperties = [
+    "click",
 
-        {
+    function (event) {
 
-            id:
-                Date.now() + 1,
+        if (
+            event.target.id ===
+            "propertyModal"
+        ) {
 
-            title:
-                "Affordable Student Room near Lalpur",
-
-            type:
-                "Room",
-
-            price:
-                4500,
-
-            location:
-                "Lalpur, Ranchi",
-
-            address:
-                "Demo Address, Lalpur, Ranchi",
-
-            phone:
-                "9876543210",
-
-            images:
-                [],
-
-            createdAt:
-                new Date().toISOString()
-
-        },
-
-
-        {
-
-            id:
-                Date.now() + 2,
-
-            title:
-                "Spacious 2BHK Family Flat",
-
-            type:
-                "2BHK",
-
-            price:
-                11000,
-
-            location:
-                "Morabadi, Ranchi",
-
-            address:
-                "Demo Address, Morabadi, Ranchi",
-
-            phone:
-                "9876543211",
-
-            images:
-                [],
-
-            createdAt:
-                new Date().toISOString()
+            closePropertyModal();
 
         }
 
-    ];
 
+        if (
+            event.target.id ===
+            "premiumModal"
+        ) {
 
-    properties = [
+            closePremium();
 
-        ...demoProperties,
+        }
 
-        ...properties
+    }
 
-    ];
-
-
-    localStorage.setItem(
-
-        "bachroom_properties",
-
-        JSON.stringify(
-            properties
-        )
-
-    );
-
-
-    updatePropertyStats();
-
-}
+);
