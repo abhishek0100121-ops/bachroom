@@ -8,6 +8,8 @@
    CONFIGURATION
 ========================================================= */
 
+const BACKEND_URL =
+    "https://bachroom-backend.onrender.com";
 
 const ADMIN_PASSWORD =
     "Abhishek@299";
