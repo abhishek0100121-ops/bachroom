@@ -195,7 +195,7 @@ function customerLogin() {
     */
 
     window.location.href =
-        `${BACKEND_URL}/auth/google`;
+        `https://bachroom-backend.onrender.com/auth/google/callback/`;
 
 }
 
