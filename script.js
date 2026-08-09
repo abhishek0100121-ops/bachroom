@@ -8,8 +8,6 @@
    CONFIGURATION
 ========================================================= */
 
-const BACKEND_URL =
-    "https://bachroom-backend.onrender.com";
 
 const ADMIN_PASSWORD =
     "Abhishek@299";
@@ -193,6 +191,8 @@ function customerLogin() {
 
        Authentication is performed by Google.
     */
+const BACKEND_URL =
+    "https://bachroom-backend.onrender.com";
 
     window.location.href =
         `&{BACKEND_URL}/auth/google`;
